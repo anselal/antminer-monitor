@@ -1,0 +1,1 @@
+from .pycgminer import CgminerAPI
