@@ -3,12 +3,13 @@
 Lite Python based Antminer Monitor !!!
 
   - Add as many miners as you want
+  - Supports miners S7, S9, L3+ and D3
   - Check their temperatures, fan speed, chip condition
-  - Get in-app notifications in case of a miner failure (needs refresh)
+  - Get in-app notifications about miner errors (needs refresh)
 
 # New Features!
 
-  - Every error is recorded in a log file
+  - Log errors to file
 
 ### Screenshot
 
