@@ -23,7 +23,7 @@ handler = logging.FileHandler(os.path.join(basedir, 'logs/antminer_monitor.log')
 handler.setLevel(logging.WARNING)
 
 # create a logging format
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s')
 handler.setFormatter(formatter)
 
 # add handlers to the logger
