@@ -65,6 +65,10 @@ def miners():
     temperatures = {}
     fans = {}
     hash_rates = {}
+    total_hash_rate_per_model = {"L3+": 0,
+                                 "S7": 0,
+                                 "S9": 0,
+                                 "D3": 0}
     errors = False
     miner_errors = {}
 
@@ -104,6 +108,7 @@ def miners():
                                 })
             temperatures.update({miner.ip: temps})
             hash_rates.update({miner.ip: ghs5s})
+            total_hash_rate_per_model[miner.model.model] += float(str(ghs5s))
             active_miners.append(miner)
 
             # Flash error messages
@@ -155,6 +160,7 @@ def miners():
                            loading_time=loading_time,
                            fans=fans,
                            hash_rates=hash_rates,
+                           total_hash_rate_per_model=total_hash_rate_per_model,
                            miner_errors=miner_errors,
                            )
 

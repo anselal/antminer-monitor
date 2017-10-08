@@ -10,6 +10,16 @@
             font-family: 'Consolas';
             font-size: 14px;
         }
+        
+        fieldset.top {
+            margin: 5px;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .right {
+            float: right;
+        }
 
         input[type="text"], textarea {
             font-family: 'Consolas';
@@ -89,7 +99,7 @@
 <body>
 <h2>Antminer Monitor v0.0.1</h2>
 
-<fieldset name="add" style="width: 300px;">
+<fieldset class="top" name="add" style="width: 300px;">
     <legend>Add Miner</legend>
     <form action="{{ url_for('add_miner') }}" method="POST">
         <p>
@@ -111,6 +121,17 @@
         </p>
         <p><input type="submit" value="Add model"></p>
     </form>
+</fieldset>
+
+<fieldset class="right top" name="total_hashrate" style="width: 300px; height:130px">
+    <legend>Total GH/s per model (last 5 seconds)</legend>
+    <ul>
+        {%- for miner in active_miners %}
+        <li><u>{{ miner.model.model }}:</u> <strong>{{ total_hash_rate_per_model[miner.model.model] }}</strong>
+            GH/s
+        </li>
+        {%- endfor %}
+    </ul>
 </fieldset>
 
 <br>
