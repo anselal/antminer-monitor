@@ -64,6 +64,7 @@ def miners():
     miner_chips = {}
     temperatures = {}
     fans = {}
+    hash_rates = {}
     errors = False
     miner_errors = {}
 
@@ -93,6 +94,8 @@ def miners():
             # Get fan speeds
             fan_speeds = [miner_stats['STATS'][1][fan] for fan in miner_stats['STATS'][1].keys() if
                           re.search("fan" + '[0-9]', fan) if miner_stats['STATS'][1][fan] != 0]
+            # Get GH/S 5s
+            ghs5s = miner_stats['STATS'][1]['GHS 5s']
             #
             fans.update({miner.ip: {"speeds": fan_speeds}})
             miner_chips.update({miner.ip: {'status': {'Os': Os, 'Xs': Xs},
@@ -100,6 +103,7 @@ def miners():
                                            }
                                 })
             temperatures.update({miner.ip: temps})
+            hash_rates.update({miner.ip: ghs5s})
             active_miners.append(miner)
 
             # Flash error messages
@@ -150,6 +154,7 @@ def miners():
                            temperatures=temperatures,
                            loading_time=loading_time,
                            fans=fans,
+                           hash_rates=hash_rates,
                            miner_errors=miner_errors,
                            )
 

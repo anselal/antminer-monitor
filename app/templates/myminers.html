@@ -161,6 +161,7 @@
             <th title="'X' means defective">Chips (Xs)</th>
             <th>Chip Temp(C)</th>
             <th>Fan speeds (rpm)</th>
+            <th>GH/s 5s</th>
             <th>Status</th>
             <th>JSON Info</th>
             <th></th>
@@ -174,6 +175,7 @@
                 <td>{{ miner_chips[active_miner.ip]['status']['Xs'] }}</td>
                 <td>{{ temperatures[active_miner.ip] }}</td>
                 <td>{{ fans[active_miner.ip].speeds }}</td>
+                <td>{{ hash_rates[active_miner.ip] }}</td>
                 <td title="{%- if active_miner.ip in miner_errors %}{{ miner_errors[active_miner.ip] }}{%- endif %}">
                     {%- if active_miner.ip in miner_errors %}Check your miner{%- else %}OK{%- endif %}</td>
                 <td><a target="_blank" href="/{{ active_miner.ip }}/summary">Summary</a> |
