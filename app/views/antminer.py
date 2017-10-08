@@ -71,6 +71,7 @@ def miners():
         miner_stats = get_stats(miner.ip)
         # if miner not accessible
         if miner_stats['STATUS'][0]['STATUS'] == 'error':
+            errors = True
             inactive_miners.append(miner)
         else:
             # Get miner's ASIC chips
