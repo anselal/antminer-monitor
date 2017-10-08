@@ -52,7 +52,7 @@ def stats(ip):
     return jsonify(output)
 
 
-@app.route('/miners')
+@app.route('/')
 def miners():
     # Init variables
     start = time.clock()
