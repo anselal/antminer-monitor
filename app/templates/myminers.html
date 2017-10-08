@@ -126,10 +126,12 @@
 <fieldset class="right top" name="total_hashrate" style="width: 300px; height:130px">
     <legend>Total GH/s per model (last 5 seconds)</legend>
     <ul>
-        {%- for miner in active_miners %}
-        <li><u>{{ miner.model.model }}:</u> <strong>{{ total_hash_rate_per_model[miner.model.model] }}</strong>
-            GH/s
-        </li>
+        {%- for model in total_hash_rate_per_model %}
+            {%- if total_hash_rate_per_model[model] >0 %}
+            <li><u>{{ model }}:</u> <strong>{{ total_hash_rate_per_model[model] }}</strong>
+                GH/s
+            </li>
+            {%- endif %}
         {%- endfor %}
     </ul>
 </fieldset>
