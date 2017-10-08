@@ -92,10 +92,12 @@ def miners():
             chips_list = [int(y) for y in str(miner.model.chips).split(',')]
             total_chips = sum(chips_list)
             # Get the temperatures of the miner according to miner's model
-            temps = [int(miner_stats['STATS'][1][temp]) for temp in miner_stats['STATS'][1].keys() if
+            temps = [int(miner_stats['STATS'][1][temp]) for temp in
+                     sorted(miner_stats['STATS'][1].keys(), key=lambda x: str(x)) if
                      re.search(miner.model.temp_keys + '[0-9]', temp) if miner_stats['STATS'][1][temp] != 0]
             # Get fan speeds
-            fan_speeds = [miner_stats['STATS'][1][fan] for fan in miner_stats['STATS'][1].keys() if
+            fan_speeds = [miner_stats['STATS'][1][fan] for fan in
+                          sorted(miner_stats['STATS'][1].keys(), key=lambda x: str(x)) if
                           re.search("fan" + '[0-9]', fan) if miner_stats['STATS'][1][fan] != 0]
             # Get GH/S 5s
             ghs5s = miner_stats['STATS'][1]['GHS 5s']
