@@ -193,7 +193,7 @@
             <tr{%- if active_miner.ip in miner_errors %} class="error"{%- endif %}>
                 <td><a target="_blank" href="http://{{ active_miner.ip }}">{{ active_miner.ip }}</a></td>
                 <td title="{{ active_miner.model.description }}">{{ active_miner.model.model }}</td>
-                <td>{{ active_miner.description }}</td>
+                <td>{{ active_miner.remarks }}</td>
                 <td>{{ miner_chips[active_miner.ip]['status']['Os'] }}</td>
                 <td>{{ miner_chips[active_miner.ip]['status']['Xs'] }}</td>
                 <td>{{ temperatures[active_miner.ip] }}</td>
