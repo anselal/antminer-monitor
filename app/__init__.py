@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import logging
 import os
 
+__version__ = "v0.0.2"
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super secret key'

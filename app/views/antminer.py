@@ -7,7 +7,7 @@ from flask import (jsonify,
                    )
 from sqlalchemy.exc import IntegrityError
 from app.pycgminer import CgminerAPI
-from app import app, db, logger
+from app import app, db, logger, __version__
 from app.models import Miner, MinerModel, Settings
 import re
 import time
@@ -56,7 +56,6 @@ def stats(ip):
 def miners():
     # Init variables
     start = time.clock()
-    version = version = Settings.query.filter_by(name='version').first()
     miners = Miner.query.all()
     models = MinerModel.query.all()
     active_miners = []
@@ -151,7 +150,7 @@ def miners():
     end = time.clock()
     loading_time = end - start
     return render_template('myminers.html',
-                           version=version,
+                           version=__version__,
                            models=models,
                            active_miners=active_miners,
                            inactive_miners=inactive_miners,

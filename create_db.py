@@ -10,7 +10,6 @@ models.append(MinerModel(model='D3', chips='60,60,60', temp_keys='temp2_', descr
 settings = []
 settings.append(Settings(name="temperature_alert", value="80", description=""))
 settings.append(Settings(name="email_alert", value="True", description="Whether to send an email on alert"))
-settings.append(Settings(name="version", value="0.0.1", description=""))
 
 for model in models:
     db.session.add(model)
