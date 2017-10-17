@@ -158,7 +158,7 @@
                 <th>Status</th>
                 <th></th>
             </tr>
-            {%- for inactive_miner in inactive_miners %}
+            {%- for inactive_miner in inactive_miners|sort(attribute='ip') %}
                 <tr>
                     <td><a target="_blank" href="http://{{ inactive_miner.ip }}">{{ inactive_miner.ip }}</a></td>
                     <td>{{ inactive_miner.model.model }}</td>
@@ -189,7 +189,7 @@
             <th>JSON Info</th>
             <th></th>
         </tr>
-        {%- for active_miner in active_miners %}
+        {%- for active_miner in active_miners|sort(attribute='ip') %}
             <tr{%- if active_miner.ip in miner_errors %} class="error"{%- endif %}>
                 <td><a target="_blank" href="http://{{ active_miner.ip }}">{{ active_miner.ip }}</a></td>
                 <td title="{{ active_miner.model.description }}">{{ active_miner.model.model }}</td>
