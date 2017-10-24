@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [v0.1.0] - 2017-10-25
+### New Features
+- :star2: new: Add miner's HW Error Rate DONE/PUSHED
+- :star: new: Add miner's uptime DONE/PUSHED
+
 ## [v0.0.3] - 2017-10-24
 ### Bug fixes
 - :zap: improvement(table): Fixed #2, Sort temperatures and fan speed by board and fan respectively
@@ -32,6 +37,7 @@
 - :star: Get in-app notifications about miner errors (needs refresh)
 - :star: Log errors to file
 
-[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.0.3...HEAD
+[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.1.0...HEAD
+[v0.1.0]: https://github.com/anselal/antminer-monitor/compare/v0.1.0...v0.0.3
 [v0.0.3]: https://github.com/anselal/antminer-monitor/compare/v0.0.2...v0.0.3
 [v0.0.2]: https://github.com/anselal/antminer-monitor/compare/v0.0.1...v0.0.2
