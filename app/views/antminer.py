@@ -10,6 +10,7 @@ from app.pycgminer import CgminerAPI
 from app import app, db, logger, __version__
 from app.models import Miner, MinerModel, Settings
 import re
+from datetime import timedelta
 import time
 
 
@@ -64,6 +65,7 @@ def miners():
     temperatures = {}
     fans = {}
     hash_rates = {}
+    hw_errors = {}
     total_hash_rate_per_model = {"L3+": 0,
                                  "S7": 0,
                                  "S9": 0,
@@ -101,6 +103,8 @@ def miners():
                           re.search("fan" + '[0-9]', fan) if miner_stats['STATS'][1][fan] != 0]
             # Get GH/S 5s
             ghs5s = miner_stats['STATS'][1]['GHS 5s']
+            # Get HW Errors
+            hw_error = miner_stats['STATS'][1]['Device Hardware%']
             #
             fans.update({miner.ip: {"speeds": fan_speeds}})
             miner_chips.update({miner.ip: {'status': {'Os': Os, 'Xs': Xs},
@@ -109,6 +113,7 @@ def miners():
                                 })
             temperatures.update({miner.ip: temps})
             hash_rates.update({miner.ip: ghs5s})
+            hw_errors.update({miner.ip: hw_error})
             total_hash_rate_per_model[miner.model.model] += float(str(ghs5s))
             active_miners.append(miner)
 
@@ -161,6 +166,7 @@ def miners():
                            loading_time=loading_time,
                            fans=fans,
                            hash_rates=hash_rates,
+                           hw_errors=hw_errors,
                            total_hash_rate_per_model=total_hash_rate_per_model,
                            miner_errors=miner_errors,
                            )
