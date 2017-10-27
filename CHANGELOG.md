@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [v0.1.1] - 2017-10-28
+### Bug fixes
+- :pencil: docs(changelog): Fix typos in CHANGELOG. Closes #11
+- :bug: fix(table): Rename <th>HW Errors</th>. Closes #12
+
 ## [v0.1.0] - 2017-10-25
 ### New Features
 - :star2: new: Add miner's HW Error Rate
@@ -37,7 +42,8 @@
 - :star: Get in-app notifications about miner errors (needs refresh)
 - :star: Log errors to file
 
-[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.1.1...HEAD
+[v0.1.1]: https://github.com/anselal/antminer-monitor/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/anselal/antminer-monitor/compare/v0.0.3...v0.1.0
 [v0.0.3]: https://github.com/anselal/antminer-monitor/compare/v0.0.2...v0.0.3
 [v0.0.2]: https://github.com/anselal/antminer-monitor/compare/v0.0.1...v0.0.2
