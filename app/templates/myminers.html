@@ -185,7 +185,7 @@
             <th>Chip Temp(C)</th>
             <th>Fan speeds (rpm)</th>
             <th>GH/s 5s</th>
-            <th>HW Errors</th>
+            <th>HW Error Rate %</th>
             <th>Uptime</th>
             <th>Status</th>
             <th>JSON Info</th>
@@ -201,7 +201,7 @@
                 <td>{{ temperatures[active_miner.ip] }}</td>
                 <td>{{ fans[active_miner.ip].speeds }}</td>
                 <td>{{ hash_rates[active_miner.ip] }}</td>
-                <td>{{ hw_errors[active_miner.ip] }}</td>
+                <td>{{ hw_error_rates[active_miner.ip] }}</td>
                 <td>{{ uptimes[active_miner.ip] }}</td>
                 <td title="{%- if active_miner.ip in miner_errors %}{{ miner_errors[active_miner.ip] }}{%- endif %}">
                     {%- if active_miner.ip in miner_errors %}Check your miner{%- else %}OK{%- endif %}</td>

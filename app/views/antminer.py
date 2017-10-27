@@ -65,7 +65,7 @@ def miners():
     temperatures = {}
     fans = {}
     hash_rates = {}
-    hw_errors = {}
+    hw_error_rates = {}
     uptimes = {}
     total_hash_rate_per_model = {"L3+": 0,
                                  "S7": 0,
@@ -105,7 +105,7 @@ def miners():
             # Get GH/S 5s
             ghs5s = miner_stats['STATS'][1]['GHS 5s']
             # Get HW Errors
-            hw_error = miner_stats['STATS'][1]['Device Hardware%']
+            hw_error_rate = miner_stats['STATS'][1]['Device Hardware%']
             # Get uptime
             uptime = timedelta(seconds=miner_stats['STATS'][1]['Elapsed'])
             #
@@ -116,7 +116,7 @@ def miners():
                                 })
             temperatures.update({miner.ip: temps})
             hash_rates.update({miner.ip: ghs5s})
-            hw_errors.update({miner.ip: hw_error})
+            hw_error_rates.update({miner.ip: hw_error_rate})
             uptimes.update({miner.ip: uptime})
             total_hash_rate_per_model[miner.model.model] += float(str(ghs5s))
             active_miners.append(miner)
@@ -170,7 +170,7 @@ def miners():
                            loading_time=loading_time,
                            fans=fans,
                            hash_rates=hash_rates,
-                           hw_errors=hw_errors,
+                           hw_error_rates=hw_error_rates,
                            uptimes=uptimes,
                            total_hash_rate_per_model=total_hash_rate_per_model,
                            miner_errors=miner_errors,
