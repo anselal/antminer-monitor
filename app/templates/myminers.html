@@ -98,6 +98,10 @@
 </head>
 <body>
 <h2>Antminer Monitor {{ version }}</h2>
+<fieldset style="width: 300px;">
+<legend>Countdown</legend>
+<b id="countdown"></b>
+</fieldset>
 
 <fieldset class="top" name="add" style="width: 300px;">
     <legend>Add Miner</legend>
@@ -270,6 +274,14 @@
             , lbl_count: "donations"
             , lbl_amount: "DASH"
         });
+        (function countdown(remaining) {
+            if(remaining === 0)
+                location.reload(true);
+            else {
+                document.getElementById('countdown').innerHTML = 'Refresh in: ' + remaining + ' sec';
+                setTimeout(function(){ countdown(remaining - 1); }, 1000);
+            }
+        })(120);
     </script>
     <!-- https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=dash:XiXwTjyN8DAsQaRh2pcFVyVSbXvk6Ph6ro?amount=0.001-->
 </body>
