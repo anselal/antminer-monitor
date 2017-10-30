@@ -90,6 +90,9 @@ def miners():
             # count number of defective chips
             X = [str(x).count('x') for x in asic_chains]
             Xs = sum(X)
+            # get number of in-active chips
+            _dash_chips = [str(x).count('-') for x in asic_chains]
+            _dash_chips = sum(_dash_chips)
             # Get total number of chips according to miner's model
             # convert miner.model.chips to int list and sum
             chips_list = [int(y) for y in str(miner.model.chips).split(',')]
@@ -110,7 +113,7 @@ def miners():
             uptime = timedelta(seconds=miner_stats['STATS'][1]['Elapsed'])
             #
             fans.update({miner.ip: {"speeds": fan_speeds}})
-            miner_chips.update({miner.ip: {'status': {'Os': Os, 'Xs': Xs},
+            miner_chips.update({miner.ip: {'status': {'Os': Os, 'Xs': Xs, '-': _dash_chips},
                                            'total': total_chips,
                                            }
                                 })

@@ -186,6 +186,7 @@
             <th>Remarks</th>
             <th title="'O' means OK">Chips (Os)</th>
             <th title="'X' means defective">Chips (Xs)</th>
+            <th title="'-' means instability of the power supply voltage or the defective hash board">Chips (-)</th>
             <th>Chip Temp(C)</th>
             <th>Fan speeds (rpm)</th>
             <th>GH/s 5s</th>
@@ -202,6 +203,7 @@
                 <td>{{ active_miner.remarks }}</td>
                 <td>{{ miner_chips[active_miner.ip]['status']['Os'] }}</td>
                 <td>{{ miner_chips[active_miner.ip]['status']['Xs'] }}</td>
+                <td>{{ miner_chips[active_miner.ip]['status']['-'] }}</td>
                 <td>{{ temperatures[active_miner.ip] }}</td>
                 <td>{{ fans[active_miner.ip].speeds }}</td>
                 <td>{{ hash_rates[active_miner.ip] }}</td>
