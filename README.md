@@ -25,3 +25,8 @@ $ python create_db.py
 $ python run.py
 ```
 
+### Donations
+
+BTC: `1HYCBovF6mqqKMyG4m2DQxXpdKmogK4Wuw`
+LTC: `LLrjq6nRokS74yPMspitHkXv4nLtEyebNW`
+DASH: `XuEnZtsCmWcDwKVe82wQddsfwUifXyeRoQ`
