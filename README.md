@@ -13,6 +13,16 @@ Lite Python based Antminer Monitor !!!
 
 ![Alt text](/app/static/images/screenshot_v0.1.1.png?raw=true "Screenshot v0.1.1")
 
+### Requirements
+
+Antminer Monitor requires Python2 to run.
+
+Mac and Linux users have Python2 installed by default on their system.
+
+Windows users can download Python2 from https://www.python.org/ftp/python/2.7.14/python-2.7.14.msi
+
+Mac users must additionally download and install `get-pip.py` from https://bootstrap.pypa.io/get-pip.py
+
 ### Installation
 
 Antminer Monitor requires Flask to run.
