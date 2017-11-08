@@ -27,7 +27,7 @@ Antminer Monitor requires Flask to run.
 Install the requirements and start the app.
 
 ```sh
-$ pip install -r requirements.txt
+$ python -m pip install -r requirements.txt
 $ python create_db.py
 $ python run.py
 ```
