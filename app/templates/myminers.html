@@ -128,12 +128,13 @@
 </fieldset>
 
 <fieldset class="right top" name="total_hashrate" style="width: 300px; height:130px">
-    <legend>Total GH/s per model (last 5 seconds)</legend>
+    <legend>Total hashrate per model (5s)</legend>
     <ul>
+        {%- set mapping = {'L3+': 'MH/s', 'S7': 'GH/s', 'S9': 'GH/s', 'D3': 'MH/s'} %}
         {%- for model in total_hash_rate_per_model|sort %}
             {%- if total_hash_rate_per_model[model] >0 %}
             <li><u>{{ model }}:</u> <strong>{{ total_hash_rate_per_model[model] }}</strong>
-                GH/s
+                {{ mapping.get(model) }}
             </li>
             {%- endif %}
         {%- endfor %}
@@ -189,7 +190,7 @@
             <th title="'-' means instability of the power supply voltage or the defective hash board">Chips (-)</th>
             <th>Chip Temp(C)</th>
             <th>Fan speeds (rpm)</th>
-            <th>GH/s 5s</th>
+            <th>Hashrate (5s)</th>
             <th>HW Error Rate %</th>
             <th>Uptime</th>
             <th>Status</th>
@@ -206,7 +207,7 @@
                 <td>{{ miner_chips[active_miner.ip]['status']['-'] }}</td>
                 <td>{{ temperatures[active_miner.ip] }}</td>
                 <td>{{ fans[active_miner.ip].speeds }}</td>
-                <td>{{ hash_rates[active_miner.ip] }}</td>
+                <td>{{ hash_rates[active_miner.ip] }} {{ mapping.get(active_miner.model.model) }}</td>
                 <td>{{ hw_error_rates[active_miner.ip] }}</td>
                 <td>{{ uptimes[active_miner.ip] }}</td>
                 <td title="{%- if active_miner.ip in miner_errors %}{{ miner_errors[active_miner.ip] }}{%- endif %}">
