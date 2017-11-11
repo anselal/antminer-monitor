@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [v0.2.0] - 2017-11-10
+### Bug fixes
+- :pencil: docs(screenshot): Showing Wrong version. Closes #13
+- :up: update(fieldset): Fix typo in fieldset name. Closes #18
+- :wrench: config(hashrate): Hash rate not showing up correctly. Closes #22
+
+### New Features
+- :star: new(autorefresh): Add auto-refresh feature. Closes #14
+- :star: new(table): Add new cell with chip condition '-'. Closes #16
+
+### Added
+- :pencil: docs(donations): Add donations
+- :pencil: docs(requirements): Add requirements
+- :pencil: docs(referral): Add referral
+- :pencil: docs(badges): Add twitter badge
+
+### Changed
+- :pencil: docs(installation): Update installation command
+
 ## [v0.1.1] - 2017-10-28
 ### Bug fixes
 - :pencil: docs(changelog): Fix typos in CHANGELOG. Closes #11
@@ -42,7 +61,8 @@
 - :star: Get in-app notifications about miner errors (needs refresh)
 - :star: Log errors to file
 
-[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.2.0...HEAD
+[v0.2.0]: https://github.com/anselal/antminer-monitor/compare/v0.1.1...v0.2.0
 [v0.1.1]: https://github.com/anselal/antminer-monitor/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/anselal/antminer-monitor/compare/v0.0.3...v0.1.0
 [v0.0.3]: https://github.com/anselal/antminer-monitor/compare/v0.0.2...v0.0.3
