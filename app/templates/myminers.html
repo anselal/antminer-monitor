@@ -161,7 +161,7 @@
                 <th>Model</th>
                 <th>Remarks</th>
                 <th>Status</th>
-                <th></th>
+                <th>Remove</th>
             </tr>
             {%- for inactive_miner in inactive_miners|sort(attribute='ip') %}
                 <tr>
@@ -169,7 +169,7 @@
                     <td>{{ inactive_miner.model.model }}</td>
                     <td>{{ inactive_miner.remarks }}</td>
                     <td>Error: Check connection or IP Address</td>
-                    <td><a href={{ url_for('delete_miner', id=inactive_miner.id) }}>Delete</a></td>
+                    <td><a href={{ url_for('delete_miner', id=inactive_miner.id) }}><img src="/static/images/assets/delete.png"></img></a></td>
                 </tr>
             {%- endfor %}
         </table>
@@ -195,7 +195,7 @@
             <th>Uptime</th>
             <th>Status</th>
             <th>JSON Info</th>
-            <th></th>
+            <th>Remove</th>
         </tr>
         {%- for active_miner in active_miners|sort(attribute='ip') %}
             <tr{%- if active_miner.ip in miner_errors %} class="error"{%- endif %}>
@@ -215,7 +215,7 @@
                 <td><a target="_blank" href="/{{ active_miner.ip }}/summary">Summary</a> |
                     <a target="_blank" href="/{{ active_miner.ip }}/pools">Pools</a> |
                     <a target="_blank" href="/{{ active_miner.ip }}/stats">Stats</a></td>
-                <td><a href={{ url_for('delete_miner', id=active_miner.id) }}>Delete</a></td>
+                <td><a href={{ url_for('delete_miner', id=active_miner.id) }}><img src="/static/images/assets/delete.png"></img></a></td>
             </tr>
         {%- endfor %}
     </table>
