@@ -61,6 +61,7 @@ def miners():
     models = MinerModel.query.all()
     active_miners = []
     inactive_miners = []
+    workers = {}
     miner_chips = {}
     temperatures = {}
     fans = {}
@@ -81,6 +82,9 @@ def miners():
             errors = True
             inactive_miners.append(miner)
         else:
+            # Get worker name
+            miner_pools = get_pools(miner.ip)
+            worker = miner_pools['POOLS'][0]['User']
             # Get miner's ASIC chips
             asic_chains = [miner_stats['STATS'][1][chain] for chain in miner_stats['STATS'][1].keys() if
                            "chain_acs" in chain]
@@ -112,12 +116,13 @@ def miners():
             # Get uptime
             uptime = timedelta(seconds=miner_stats['STATS'][1]['Elapsed'])
             #
-            fans.update({miner.ip: {"speeds": fan_speeds}})
+            workers.update({miner.ip: worker})
             miner_chips.update({miner.ip: {'status': {'Os': Os, 'Xs': Xs, '-': _dash_chips},
                                            'total': total_chips,
                                            }
                                 })
             temperatures.update({miner.ip: temps})
+            fans.update({miner.ip: {"speeds": fan_speeds}})
             hash_rates.update({miner.ip: ghs5s})
             hw_error_rates.update({miner.ip: hw_error_rate})
             uptimes.update({miner.ip: uptime})
@@ -168,14 +173,15 @@ def miners():
                            models=models,
                            active_miners=active_miners,
                            inactive_miners=inactive_miners,
+                           workers=workers,
                            miner_chips=miner_chips,
                            temperatures=temperatures,
-                           loading_time=loading_time,
                            fans=fans,
                            hash_rates=hash_rates,
                            hw_error_rates=hw_error_rates,
                            uptimes=uptimes,
                            total_hash_rate_per_model=total_hash_rate_per_model,
+                           loading_time=loading_time,
                            miner_errors=miner_errors,
                            )
 
