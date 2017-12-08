@@ -1,5 +1,6 @@
 from app.models import MinerModel, Settings
 from app import db
+from sqlalchemy.exc import IntegrityError
 
 db.create_all()
 models = []
@@ -11,10 +12,16 @@ settings = []
 settings.append(Settings(name="temperature_alert", value="80", description=""))
 settings.append(Settings(name="email_alert", value="True", description="Whether to send an email on alert"))
 
-for model in models:
-    db.session.add(model)
-    db.session.commit()
+try:
+    for model in models:
+        db.session.add(model)
+        db.session.commit()
 
-for setting in settings:
-    db.session.add(setting)
-    db.session.commit()
+    for setting in settings:
+        db.session.add(setting)
+        db.session.commit()
+except IntegrityError:
+    print("Database already exists.")
+else:
+    print("Database successfully created.")
+
