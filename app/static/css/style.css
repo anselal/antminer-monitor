@@ -1,0 +1,85 @@
+body {
+    width: 1024px;
+    margin: 0 auto;
+    font-family: 'Consolas';
+    font-size: 14px;
+}
+
+fieldset.top {
+    margin: 5px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.right {
+    float: right;
+}
+
+input[type="text"], textarea {
+    font-family: 'Consolas';
+    font-size: 12px;
+}
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+th, td {
+    padding: 5px;
+}
+
+tr:hover {
+    background-color: #f5f5f5
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+form {
+    display: table;
+}
+
+p {
+    display: table-row;
+}
+
+label {
+    display: table-cell;
+}
+
+input {
+    display: table-cell;
+    margin: 5px 0px 5px 0px;
+}
+
+.info, .success, .warning, .error {
+    margin: 10px 0px;
+    padding: 12px;
+    border-radius: .5em;  // add rounder corners
+    border: 1px solid;  // add border
+    box-shadow: 1px 1px 3px #888;  // add shadow
+}
+
+.info {
+    color: #00529B;
+    background-color: #BDE5F8;
+}
+
+.success {
+    color: #4F8A10;
+    background-color: #DFF2BF;
+}
+
+.warning {
+    color: #9F6000;
+    background-color: #FEEFB3;
+}
+
+.error {
+    color: #D8000C;
+    background-color: #FFBABA;
+}
