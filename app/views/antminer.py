@@ -42,14 +42,14 @@ def miners():
     miner_errors = {}
 
     for miner in miners:
-        miner_stats = get_stats(miner.ip)
+        miner_stats = get_stats(miner.local_ip)
         # if miner not accessible
-        if miner_stats['STATUS'][0]['STATUS'] == 'error':
+        if miner_stats['STATUS'][0]['STATUS'] <> 'S':
             errors = True
             inactive_miners.append(miner)
         else:
             # Get worker name
-            miner_pools = get_pools(miner.ip)
+            miner_pools = get_pools(miner.local_ip)
             worker = miner_pools['POOLS'][0]['User']
             # Get miner's ASIC chips
             asic_chains = [miner_stats['STATS'][1][chain] for chain in miner_stats['STATS'][1].keys() if
@@ -82,38 +82,38 @@ def miners():
             # Get uptime
             uptime = timedelta(seconds=miner_stats['STATS'][1]['Elapsed'])
             #
-            workers.update({miner.ip: worker})
-            miner_chips.update({miner.ip: {'status': {'Os': Os, 'Xs': Xs, '-': _dash_chips},
+            workers.update({miner.local_ip: worker})
+            miner_chips.update({miner.local_ip: {'status': {'Os': Os, 'Xs': Xs, '-': _dash_chips},
                                            'total': total_chips,
                                            }
                                 })
-            temperatures.update({miner.ip: temps})
-            fans.update({miner.ip: {"speeds": fan_speeds}})
-            hash_rates.update({miner.ip: ghs5s})
-            hw_error_rates.update({miner.ip: hw_error_rate})
-            uptimes.update({miner.ip: uptime})
+            temperatures.update({miner.local_ip: temps})
+            fans.update({miner.local_ip: {"speeds": fan_speeds}})
+            hash_rates.update({miner.local_ip: ghs5s})
+            hw_error_rates.update({miner.local_ip: hw_error_rate})
+            uptimes.update({miner.local_ip: uptime})
             total_hash_rate_per_model[miner.model.model] += float(str(ghs5s))
             active_miners.append(miner)
 
             # Flash error messages
             if Xs > 0:
-                error_message = "[WARNING] '{}' chips are defective on miner '{}'.".format(Xs, miner.ip)
+                error_message = "[WARNING] '{}' chips are defective on miner '{}'.".format(Xs, miner.local_ip)
                 logger.warning(error_message)
                 flash(error_message, "warning")
                 errors = True
-                miner_errors.update({miner.ip: error_message})
+                miner_errors.update({miner.local_ip: error_message})
             if Os + Xs < total_chips:
                 error_message = "[ERROR] ASIC chips are missing from miner '{}'. Your Antminer '{}' has '{}/{} chips'." \
-                    .format(miner.ip,
+                    .format(miner.local_ip,
                             miner.model.model,
                             Os + Xs,
                             total_chips)
                 logger.error(error_message)
                 flash(error_message, "error")
                 errors = True
-                miner_errors.update({miner.ip: error_message})
+                miner_errors.update({miner.local_ip: error_message})
             if max(temps) >= 80:
-                error_message = "[WARNING] High temperatures on miner '{}'.".format(miner.ip)
+                error_message = "[WARNING] High temperatures on miner '{}'.".format(miner.local_ip)
                 logger.warning(error_message)
                 flash(error_message, "warning")
 
@@ -154,7 +154,8 @@ def miners():
 
 @app.route('/add', methods=['POST'])
 def add_miner():
-    miner_ip = request.form['ip']
+    local_ip = request.form['local_ip']
+    remote_hostport = request.form['remote_hostport']
     miner_model_id = request.form.get('model_id')
     miner_remarks = request.form['remarks']
 
@@ -163,13 +164,13 @@ def add_miner():
     #    return "IP Address already added"
 
     try:
-        miner = Miner(ip=miner_ip, model_id=miner_model_id, remarks=miner_remarks)
+        miner = Miner(local_ip=local_ip, remote_hostport=remote_hostport, model_id=miner_model_id, remarks=miner_remarks)
         db.session.add(miner)
         db.session.commit()
-        flash("Miner with IP Address {} added successfully".format(miner.ip), "success")
+        flash("Miner with Local IP Address {} added successfully".format(miner.local_ip), "success")
     except IntegrityError as e:
         db.session.rollback()
-        flash("IP Address {} already added".format(miner_ip), "error")
+        flash("Local IP Address {} already added".format(local_ip), "error")
 
     return redirect(url_for('miners'))
 
