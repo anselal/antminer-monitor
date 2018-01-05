@@ -21,8 +21,8 @@
                 <input required type="text" name="local_ip">
             </p>
             <p>
-                <label for="remote_hostport">Remote HostPort: </label>
-                <input required type="text" name="remote_hostport">
+                <label for="http_admin_host_port">HTTP Admin Host Port: </label>
+                <input required type="text" name="http_admin_host_port">
             </p>
             <p>
                 <label for="model_id">Model: </label>
@@ -46,12 +46,11 @@
     <fieldset class="right top" name="total_hashrate" style="width: 300px; height:130px">
         <legend>Total hashrate per model (5s)</legend>
         <ul>
-            {%- set mapping = {'L3+': 'MH/s', 'S7': 'GH/s', 'S9': 'GH/s', 'D3': 'MH/s'} %} {%- for model in total_hash_rate_per_model|sort
+            {%- for model in total_hash_rate_per_model|sort
             %} {%- if total_hash_rate_per_model[model] >0 %}
             <li>
                 <u>{{ model }}:</u>
                 <strong>{{ total_hash_rate_per_model[model] }}</strong>
-                {{ mapping.get(model) }}
             </li>
             {%- endif %} {%- endfor %}
         </ul>
@@ -76,7 +75,7 @@
             {%- for inactive_miner in inactive_miners|sort(attribute='ip') %}
             <tr>
                 <td>
-                    <a target="_blank" href="http://{{ inactive_miner.remote_hostport }}">Admin</a>
+                    <a target="_blank" href="http://{{ inactive_miner.local_ip }}">{{ inactive_miner.local_ip }}</a>
                 </td>
                 <td>{{ inactive_miner.model.model }}</td>
                 <td>{{ inactive_miner.remarks }}</td>
@@ -117,7 +116,7 @@
             {%- for active_miner in active_miners|sort(attribute='local_ip') %}
             <tr{%- if active_miner.local_ip in miner_errors %} class="error" {%- endif %}>
                 <td>
-                    <a target="_blank" href="http://{{ active_miner.remote_hostport }}">Admin</a>
+                    <a target="_blank" href="http://{{ active_miner.http_admin_host_port }}">Console</a>
                 </td>
                 <td>{{ workers[active_miner.local_ip] }}</td>
                 <td title="{{ active_miner.model.description }}">{{ active_miner.model.model }}</td>
@@ -127,7 +126,7 @@
                 <td>{{ miner_chips[active_miner.local_ip]['status']['-'] }}</td>
                 <td>{{ temperatures[active_miner.local_ip] }}</td>
                 <td>{{ fans[active_miner.local_ip].speeds }}</td>
-                <td>{{ hash_rates[active_miner.local_ip] }} {{ mapping.get(active_miner.model.model) }}</td>
+                <td>{{ hash_rates[active_miner.local_ip] }}</td>
                 <td>{{ hw_error_rates[active_miner.local_ip] }}</td>
                 <td>{{ uptimes[active_miner.local_ip] }}</td>
                 <td title="{%- if active_miner.local_ip in miner_errors %}{{ miner_errors[active_miner.local_ip] }}{%- endif %}">
