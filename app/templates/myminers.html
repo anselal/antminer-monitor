@@ -47,10 +47,10 @@
         <legend>Total hashrate per model (5s)</legend>
         <ul>
             {%- for model in total_hash_rate_per_model|sort
-            %} {%- if total_hash_rate_per_model[model] >0 %}
+            %} {%- if total_hash_rate_per_model[model]["value"] >0 %}
             <li>
                 <u>{{ model }}:</u>
-                <strong>{{ total_hash_rate_per_model[model] }}</strong>
+                <strong>{{ total_hash_rate_per_model[model]["to_string"] }}</strong>
             </li>
             {%- endif %} {%- endfor %}
         </ul>

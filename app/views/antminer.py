@@ -32,6 +32,12 @@ def update_unit_and_value(value, unit):
             assert False, "Unsupported unit: {}".format(unit)
     return (value, unit)
 
+# Pretty prints a hash speed
+# pretty_print_hash_speed(19000, "MH/s") => "19 GH/s"
+def pretty_print_hash_speed(value, unit):
+    value, unit = update_unit_and_value(value, unit)
+    return "{:3.2f} {}".format(value, unit)
+
 @app.route('/')
 def miners():
     # Init variables
@@ -49,10 +55,10 @@ def miners():
     uptimes = {}
     # TODO(sergioclemente): Abstract these configurations in a separate class. 
     mapping = {'L3+': 'MH/s', 'S7': 'GH/s', 'S9': 'GH/s', 'D3': 'MH/s'}
-    total_hash_rate_per_model = {"L3+": {"value": 0, "unit": mapping["L3+"]},
-                                 "S7": {"value": 0, "unit": mapping["S7"]},
-                                 "S9": {"value": 0, "unit": mapping["S9"]},
-                                 "D3": {"value": 0, "unit": mapping["D3"]}}
+    total_hash_rate_per_model = {"L3+": {"value": 0, "unit": mapping["L3+"], "to_string": ""},
+                                 "S7": {"value": 0, "unit": mapping["S7"], "to_string": ""},
+                                 "S9": {"value": 0, "unit": mapping["S9"], "to_string": ""},
+                                 "D3": {"value": 0, "unit": mapping["D3"], "to_string": ""}}
 
     errors = False
     miner_errors = {}
@@ -105,11 +111,11 @@ def miners():
                                 })
             temperatures.update({miner.local_ip: temps})
             fans.update({miner.local_ip: {"speeds": fan_speeds}})
-            value, unit = update_unit_and_value(ghs5s, mapping[miner.model.model])
-            hash_rates.update({miner.local_ip: "{:3.2f} {}".format(value, unit)})
+            hash_rates.update({miner.local_ip: pretty_print_hash_speed(ghs5s, mapping[miner.model.model])})
             hw_error_rates.update({miner.local_ip: hw_error_rate})
             uptimes.update({miner.local_ip: uptime})
             total_hash_rate_per_model[miner.model.model]["value"] += ghs5s
+            total_hash_rate_per_model[miner.model.model]["to_string"] += pretty_print_hash_speed(total_hash_rate_per_model[miner.model.model]["value"], total_hash_rate_per_model[miner.model.model]["unit"])
             active_miners.append(miner)
 
             # Flash error messages
@@ -149,14 +155,6 @@ def miners():
     # flash("WARNING !!! Check temperatures on your miner", "warning")
     # flash("ERROR !!!Check board(s) on your miner", "error")
 
-    # Convert the total_hash_rate_per_model into a data structure that the template can
-    # consume.
-    total_hash_rate_per_model_temp = {}
-    for key in total_hash_rate_per_model:
-        value, unit = update_unit_and_value(total_hash_rate_per_model[key]["value"], total_hash_rate_per_model[key]["unit"])
-        if value > 0:
-            total_hash_rate_per_model_temp[key] = "{:3.2f} {}".format(value, unit)
-
     end = time.clock()
     loading_time = end - start
     return render_template('myminers.html',
@@ -171,7 +169,7 @@ def miners():
                            hash_rates=hash_rates,
                            hw_error_rates=hw_error_rates,
                            uptimes=uptimes,
-                           total_hash_rate_per_model=total_hash_rate_per_model_temp,
+                           total_hash_rate_per_model=total_hash_rate_per_model,
                            loading_time=loading_time,
                            miner_errors=miner_errors,
                            )
