@@ -26,10 +26,6 @@ class HashRate:
         self.unit = unit
         self._validate()
 
-    @staticmethod
-    def _supported_units():
-        return
-
     def _validate(self):
         return self.value >= 0 and self.unit in supported_units
 
