@@ -33,7 +33,7 @@ def update_unit_and_value(value, unit):
     return (value, unit)
 
 # Pretty prints a hash speed
-# pretty_print_hash_speed(19000, "MH/s") => "19 GH/s"
+# pretty_print_hash_speed(19250, "MH/s") => "19.25 GH/s"
 def pretty_print_hash_speed(value, unit):
     value, unit = update_unit_and_value(value, unit)
     return "{:3.2f} {}".format(value, unit)
