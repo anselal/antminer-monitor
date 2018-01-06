@@ -133,8 +133,8 @@
                     {%- if active_miner.local_ip in miner_errors %}Check your miner{%- else %}OK{%- endif %}</td>
                 <!-- <td><a target="_blank" href="/{{ active_miner.local_ip }}/summary">Summary</a> |
                     <a target="_blank" href="/{{ active_miner.local_ip }}/pools">Pools</a> |
-                    <a target="_blank" href="/{{ active_miner.local_ip }}/stats">Stats</a></td>
-                <td> -->
+                    <a target="_blank" href="/{{ active_miner.local_ip }}/stats">Stats</a></td> -->
+                <td>
                     <a href={{ url_for( 'delete_miner', id=active_miner.id) }}>
                         <img src="/static/images/assets/remove.png"></img>
                     </a>
