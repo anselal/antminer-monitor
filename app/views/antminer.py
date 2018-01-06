@@ -18,22 +18,34 @@ import re
 from datetime import timedelta
 import time
 
-supported_units = {"MH/s", "GH/s", "TH/s"}
+SUPPORTED_UNITS = {"MH/s", "GH/s", "TH/s"}
 
-class HashRate:
+class HashRate(object):
+    """
+        This class encapsulates mainly two things:
+            * Add two HashRate's
+            * Pretty print a HashRate.
+    """
     def __init__(self, value, unit):
         self.value = value
         self.unit = unit
-        self._validate()
-
-    def _validate(self):
-        return self.value >= 0 and self.unit in supported_units
+        assert self._validate(), "Invalid HashRate"
 
     def add(self, hash_rate):
+        """Adds two HashRates if they have the same unit.
+
+            Input:
+                * hash_rate: HashRate object to be added to the current instance.
+
+            Returns: Returns a new instance with the new HashRate.
+        """
         if self.unit <> hash_rate.unit:
             assert False, "Not supporting adding different units"
             return None
         return HashRate(self.value + hash_rate.value, self.unit)
+
+    def _validate(self):
+        return self.value >= 0 and self.unit in SUPPORTED_UNITS
 
     def __str__(self):
         value_new = self.value
