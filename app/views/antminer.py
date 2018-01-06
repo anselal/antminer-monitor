@@ -18,25 +18,45 @@ import re
 from datetime import timedelta
 import time
 
+supported_units = {"MH/s", "GH/s", "TH/s"}
 
-# Update from one unit to the next if the value is greater than 1000.
-# e.g. update_unit_and_value(1000, "GH/s") => (1, "TH/s")
-def update_unit_and_value(value, unit):
-    if value > 1000:
-        value = value / 1000
-        if unit == 'MH/s':
-            unit = 'GH/s'
-        elif unit == 'GH/s':
-            unit = 'TH/s'
-        else:
-            assert False, "Unsupported unit: {}".format(unit)
-    return (value, unit)
+class HashRate:
+    def __init__(self, value, unit):
+        self.value = value
+        self.unit = unit
+        self._validate()
 
-# Pretty prints a hash speed
-# pretty_print_hash_speed(19250, "MH/s") => "19.25 GH/s"
-def pretty_print_hash_speed(value, unit):
-    value, unit = update_unit_and_value(value, unit)
-    return "{:3.2f} {}".format(value, unit)
+    @staticmethod
+    def _supported_units():
+        return
+
+    def _validate(self):
+        return self.value >= 0 and self.unit in supported_units
+
+    def add(self, hash_rate):
+        if self.unit <> hash_rate.unit:
+            assert False, "Not supporting adding different units"
+            return None
+        return HashRate(self.value + hash_rate.value, self.unit)
+
+    def __str__(self):
+        value_new = self.value
+        unit_new = self.unit
+
+        # Update from one unit to the next if the value is greater than 1000.
+        # e.g. update_unit_and_value(1000, "GH/s") => (1, "TH/s")
+        if value_new > 1000:
+                value_new = value_new / 1000
+                if unit_new == 'MH/s':
+                    unit_new = 'GH/s'
+                elif unit_new == 'GH/s':
+                    unit_new = 'TH/s'
+                else:
+                    assert False, "Unsupported unit: {}".format(unit_new)
+
+        # Formats
+        # ( 19250, "MH/s") => "19.25 GH/s"
+        return "{:3.2f} {}".format(value_new, unit_new)
 
 @app.route('/')
 def miners():
@@ -55,10 +75,10 @@ def miners():
     uptimes = {}
     # TODO(sergioclemente): Abstract these configurations in a separate class. 
     mapping = {'L3+': 'MH/s', 'S7': 'GH/s', 'S9': 'GH/s', 'D3': 'MH/s'}
-    total_hash_rate_per_model = {"L3+": {"value": 0, "unit": mapping["L3+"], "to_string": ""},
-                                 "S7": {"value": 0, "unit": mapping["S7"], "to_string": ""},
-                                 "S9": {"value": 0, "unit": mapping["S9"], "to_string": ""},
-                                 "D3": {"value": 0, "unit": mapping["D3"], "to_string": ""}}
+    total_hash_rate_per_model = {"L3+": HashRate(0, mapping["L3+"]),
+                                 "S7": HashRate(0, mapping["S7"]),
+                                 "S9": HashRate(0, mapping["S9"]),
+                                 "D3": HashRate(0, mapping["D3"])}
 
     errors = False
     miner_errors = {}
@@ -111,11 +131,11 @@ def miners():
                                 })
             temperatures.update({miner.local_ip: temps})
             fans.update({miner.local_ip: {"speeds": fan_speeds}})
-            hash_rates.update({miner.local_ip: pretty_print_hash_speed(ghs5s, mapping[miner.model.model])})
+            hash_rate = HashRate(ghs5s, mapping[miner.model.model])
+            hash_rates.update({miner.local_ip: hash_rate})
             hw_error_rates.update({miner.local_ip: hw_error_rate})
             uptimes.update({miner.local_ip: uptime})
-            total_hash_rate_per_model[miner.model.model]["value"] += ghs5s
-            total_hash_rate_per_model[miner.model.model]["to_string"] += pretty_print_hash_speed(total_hash_rate_per_model[miner.model.model]["value"], total_hash_rate_per_model[miner.model.model]["unit"])
+            total_hash_rate_per_model[miner.model.model] = hash_rate.add(total_hash_rate_per_model[miner.model.model])
             active_miners.append(miner)
 
             # Flash error messages
