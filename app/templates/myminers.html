@@ -49,7 +49,7 @@
             <li><u>{{ model }}:</u><strong>{{ total_hash_rate_per_model[model]["to_string"] }}</strong>
             </li>
             {%- endif %}
-        {%- endfor %}        
+        {%- endfor %}
     </ul>
 </fieldset>
 
@@ -94,7 +94,7 @@
     <legend>Active Miners ({{ active_miners|length }})</legend>
     <table style="width:100%">
         <tr>
-            <th>Management</th>
+            <th>Local Ip Address</th>
             <th>Worker</th>
             <th>Model</th>
             <th>Remarks</th>
@@ -112,7 +112,7 @@
         </tr>
         {%- for active_miner in active_miners|sort(attribute='local_ip') %}
             <tr{%- if active_miner.local_ip in miner_errors %} class="error"{%- endif %}>
-                <td><a target="_blank" href="http://{{ active_miner.http_admin_host_port }}">Console</a></td>
+                <td><a target="_blank" href="http://{{ active_miner.http_admin_host_port }}">{{ active_miner.local_ip }}</a></td>
                 <td>{{ workers[active_miner.local_ip] }}</td>
                 <td title="{{ active_miner.model.description }}">{{ active_miner.model.model }}</td>
                 <td>{{ active_miner.remarks }}</td>
