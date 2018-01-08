@@ -18,34 +18,21 @@ import re
 from datetime import timedelta
 import time
 
-SUPPORTED_UNITS = {"MH/s", "GH/s", "TH/s"}
+class BaseMetric(object):
+    """
+        This class encapsulates a unit and a value.
 
-class HashRate(object):
+        The only convenience method it provides is a __str__
     """
-        This class encapsulates mainly two things:
-            * Add two HashRate's
-            * Pretty print a HashRate.
-    """
-    def __init__(self, value, unit):
+    def __init__(self, value, unit, supported_units, format_pattern):
         self.value = value
         self.unit = unit
-        assert self._validate(), "Invalid HashRate"
-
-    def add(self, hash_rate):
-        """Adds two HashRates if they have the same unit.
-
-            Input:
-                * hash_rate: HashRate object to be added to the current instance.
-
-            Returns: Returns a new instance with the new HashRate.
-        """
-        if self.unit <> hash_rate.unit:
-            assert False, "Not supporting adding different units"
-            return None
-        return HashRate(self.value + hash_rate.value, self.unit)
+        self.supported_units = supported_units
+        self.format_pattern = format_pattern        
+        assert self._validate(), "Invalid BaseMetric"
 
     def _validate(self):
-        return self.value >= 0 and self.unit in SUPPORTED_UNITS
+        return self.value >= 0 and self.unit in self.supported_units
 
     def __str__(self):
         value_new = self.value
@@ -55,16 +42,69 @@ class HashRate(object):
         # e.g. update_unit_and_value(1000, "GH/s") => (1, "TH/s")
         if value_new > 1000:
                 value_new = value_new / 1000
-                if unit_new == 'MH/s':
-                    unit_new = 'GH/s'
-                elif unit_new == 'GH/s':
-                    unit_new = 'TH/s'
-                else:
-                    assert False, "Unsupported unit: {}".format(unit_new)
+                idx = self.supported_units.index(self.unit)
+                assert idx >= 0 and idx < len(self.supported_units) - 1
+                unit_new = self.supported_units[idx+1]
 
         # Formats
         # ( 19250, "MH/s") => "19.25 GH/s"
-        return "{:3.2f} {}".format(value_new, unit_new)
+        return self.format_pattern.format(value_new, unit_new)
+
+HASH_RATE_SUPPORTED_UNITS = ["MH/s", "GH/s", "TH/s"]
+class HashRate(BaseMetric):
+    def __init__(self, value, unit):
+        super(HashRate,self).__init__(value, unit, HASH_RATE_SUPPORTED_UNITS, "{:3.2f} {}")
+
+    def add(self, other):
+        """Adds two BasicMetric if they have the same unit.
+
+            Input:
+                * other: HashRate object to be added to the current instance.
+
+            Returns: Returns a new instance with the new HashRate.
+        """
+        if self.unit <> other.unit:
+            assert False, "Not supporting adding different units"
+            return None
+        return HashRate(self.value + other.value, self.unit)
+
+CLOCK_RATE_SUPPORTED_UNITS = ["Mhz", "Ghz"]
+class ClockRate(BaseMetric):
+    def __init__(self, value, unit):
+        super(ClockRate,self).__init__(value, unit, CLOCK_RATE_SUPPORTED_UNITS, "{:3.0f} {}")
+
+class NumberVector(object):
+    """
+        This class is essentially a way for the template access
+        other python methods. This is used for temperatures and
+        fan speed.
+
+        For example, if the maximum element of the temperature
+        is above certain threshold we want to show a warning.
+    """
+    def __init__(self, elements):
+        self.elements = elements
+
+    def append(self, num):
+        """
+            Appends 'num' to the end of the list.
+        """
+        self.elements.append(num)
+
+    def max(self):
+        """
+            Returns the maximum of the elements.
+        """
+        return max(self.elements)
+
+    def min(self):
+        """
+            Returns the minimum of the elements.
+        """
+        return min(self.elements)
+
+    def __str__(self):
+        return str(self.elements)
 
 @app.route('/')
 def miners():
@@ -77,16 +117,21 @@ def miners():
     workers = {}
     miner_chips = {}
     temperatures = {}
+    clock_speed = {}
+    clock_speed_percentage = {}
     fans = {}
+    max_fan_rpm = {}
     hash_rates = {}
     hw_error_rates = {}
     uptimes = {}
     # TODO(sergioclemente): Abstract these configurations in a separate class. 
-    mapping = {'L3+': 'MH/s', 'S7': 'GH/s', 'S9': 'GH/s', 'D3': 'MH/s'}
-    total_hash_rate_per_model = {"L3+": HashRate(0, mapping["L3+"]),
-                                 "S7": HashRate(0, mapping["S7"]),
-                                 "S9": HashRate(0, mapping["S9"]),
-                                 "D3": HashRate(0, mapping["D3"])}
+    mapping_hash_rate = {'L3+': 'MH/s', 'S7': 'GH/s', 'S9': 'GH/s', 'D3': 'MH/s'}
+    mapping_default_clockrate = {'L3+': 384.0, 'S7': 1.0, 'S9': 550, 'D3': 487.0}
+    mapping_max_fan_rpm = {'L3+': 7125.0, 'S7': 7125.0, 'S9': 7125.0, 'D3': 7125.0}
+    total_hash_rate_per_model = {"L3+": HashRate(0, mapping_hash_rate["L3+"]),
+                                 "S7": HashRate(0, mapping_hash_rate["S7"]),
+                                 "S9": HashRate(0, mapping_hash_rate["S9"]),
+                                 "D3": HashRate(0, mapping_hash_rate["D3"])}
 
     errors = False
     miner_errors = {}
@@ -137,9 +182,13 @@ def miners():
                                            'total': total_chips,
                                            }
                                 })
-            temperatures.update({miner.local_ip: temps})
-            fans.update({miner.local_ip: {"speeds": fan_speeds}})
-            hash_rate = HashRate(ghs5s, mapping[miner.model.model])
+            clock_rate = int(miner_stats['STATS'][1]['frequency'])
+            clock_speed.update({miner.local_ip: ClockRate(clock_rate, "Mhz")})
+            clock_speed_percentage.update({miner.local_ip: 100*clock_rate / mapping_default_clockrate[miner.model.model]})
+            temperatures.update({miner.local_ip: NumberVector(temps)})
+            fans.update({miner.local_ip: {"speeds": NumberVector(fan_speeds)}})
+            max_fan_rpm.update({miner.local_ip: mapping_max_fan_rpm[miner.model.model]})
+            hash_rate = HashRate(ghs5s, mapping_hash_rate[miner.model.model])
             hash_rates.update({miner.local_ip: hash_rate})
             hw_error_rates.update({miner.local_ip: hw_error_rate})
             uptimes.update({miner.local_ip: uptime})
@@ -192,8 +241,11 @@ def miners():
                            inactive_miners=inactive_miners,
                            workers=workers,
                            miner_chips=miner_chips,
+                           clock_speed=clock_speed,
+                           clock_speed_percentage=clock_speed_percentage,
                            temperatures=temperatures,
                            fans=fans,
+                           max_fan_rpm=max_fan_rpm,
                            hash_rates=hash_rates,
                            hw_error_rates=hw_error_rates,
                            uptimes=uptimes,

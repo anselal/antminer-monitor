@@ -9,5 +9,6 @@ class Miner(db.Model):
     model = db.relationship("MinerModel", backref="miners")
     remarks = db.Column(db.String(255), nullable=True)
 
+
     def __repr__(self):
         return "Miner(local_ip='{}', http_admin_host_port='{}', model='{}', remarks='{}')".format(self.local_ip, self.http_admin_host_port, self.model, self.remarks)
