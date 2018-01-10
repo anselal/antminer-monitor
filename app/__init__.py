@@ -30,4 +30,7 @@ handler.setFormatter(formatter)
 # add handlers to the logger
 logger.addHandler(handler)
 
+# Import max function to be used in the templates.
+app.jinja_env.globals.update(max=max)
+
 from app.views import antminer, antminer_json
