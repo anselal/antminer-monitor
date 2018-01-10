@@ -18,6 +18,20 @@ import re
 from datetime import timedelta
 import time
 
+# Update from one unit to the next if the value is greater than 1000.
+# e.g. update_unit_and_value(1000, "GH/s") => (1, "TH/s")
+def update_unit_and_value(value, unit):
+    if value > 1000:
+        value = value / 1000
+        if unit == 'MH/s':
+            unit = 'GH/s'
+        elif unit == 'GH/s':
+            unit = 'TH/s'
+        else:
+            assert False, "Unsupported unit: {}".format(unit)
+    return (value, unit)
+
+
 
 @app.route('/')
 def miners():
@@ -34,10 +48,11 @@ def miners():
     hash_rates = {}
     hw_error_rates = {}
     uptimes = {}
-    total_hash_rate_per_model = {"L3+": 0,
-                                 "S7": 0,
-                                 "S9": 0,
-                                 "D3": 0}
+    mapping = {'L3+': 'MH/s', 'S7': 'GH/s', 'S9': 'GH/s', 'D3': 'MH/s'}
+    total_hash_rate_per_model = {"L3+": {"value": 0, "unit": mapping["L3+"]},
+                                 "S7": {"value": 0, "unit": mapping["S7"]},
+                                 "S9": {"value": 0, "unit": mapping["S9"]},
+                                 "D3": {"value": 0, "unit": mapping["D3"]}}
     errors = False
     miner_errors = {}
 
@@ -76,7 +91,7 @@ def miners():
                           sorted(miner_stats['STATS'][1].keys(), key=lambda x: str(x)) if
                           re.search("fan" + '[0-9]', fan) if miner_stats['STATS'][1][fan] != 0]
             # Get GH/S 5s
-            ghs5s = miner_stats['STATS'][1]['GHS 5s']
+            ghs5s = float(str(miner_stats['STATS'][1]['GHS 5s']))
             # Get HW Errors
             hw_error_rate = miner_stats['STATS'][1]['Device Hardware%']
             # Get uptime
@@ -89,10 +104,11 @@ def miners():
                                 })
             temperatures.update({miner.ip: temps})
             fans.update({miner.ip: {"speeds": fan_speeds}})
-            hash_rates.update({miner.ip: ghs5s})
+            value, unit = update_unit_and_value(ghs5s, mapping[miner.model.model])
+            hash_rates.update({miner.ip: "{:3.2f} {}".format(value, unit)})
             hw_error_rates.update({miner.ip: hw_error_rate})
             uptimes.update({miner.ip: uptime})
-            total_hash_rate_per_model[miner.model.model] += float(str(ghs5s))
+            total_hash_rate_per_model[miner.model.model]["value"] += ghs5s
             active_miners.append(miner)
 
             # Flash error messages
@@ -132,6 +148,15 @@ def miners():
     # flash("WARNING !!! Check temperatures on your miner", "warning")
     # flash("ERROR !!!Check board(s) on your miner", "error")
 
+    # Convert the total_hash_rate_per_model into a data structure that the template can
+    # consume.
+    total_hash_rate_per_model_temp = {}
+    for key in total_hash_rate_per_model:
+        value, unit = update_unit_and_value(total_hash_rate_per_model[key]["value"], total_hash_rate_per_model[key]["unit"])
+        if value > 0:
+            total_hash_rate_per_model_temp[key] = "{:3.2f} {}".format(value, unit)
+
+
     end = time.clock()
     loading_time = end - start
     return render_template('myminers.html',
@@ -146,7 +171,7 @@ def miners():
                            hash_rates=hash_rates,
                            hw_error_rates=hw_error_rates,
                            uptimes=uptimes,
-                           total_hash_rate_per_model=total_hash_rate_per_model,
+                           total_hash_rate_per_model=total_hash_rate_per_model_temp,
                            loading_time=loading_time,
                            miner_errors=miner_errors,
                            )
