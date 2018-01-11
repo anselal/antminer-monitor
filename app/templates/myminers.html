@@ -132,7 +132,6 @@
     <ul>
         {%- for model in total_hash_rate_per_model|sort %}
             <li><u>{{ model }}:</u> <strong>{{ total_hash_rate_per_model[model] }}</strong>
-                {{ mapping.get(model) }}
             </li>
         {%- endfor %}
     </ul>
