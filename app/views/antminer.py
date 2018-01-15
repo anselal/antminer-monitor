@@ -48,11 +48,10 @@ def miners():
     hash_rates = {}
     hw_error_rates = {}
     uptimes = {}
-    mapping = {'L3+': 'MH/s', 'S7': 'GH/s', 'S9': 'GH/s', 'D3': 'MH/s'}
-    total_hash_rate_per_model = {"L3+": {"value": 0, "unit": mapping["L3+"]},
-                                 "S7": {"value": 0, "unit": mapping["S7"]},
-                                 "S9": {"value": 0, "unit": mapping["S9"]},
-                                 "D3": {"value": 0, "unit": mapping["D3"]}}
+    total_hash_rate_per_model = {"L3+": {"value": 0, "unit": "MH/s" },
+                                "S7": {"value": 0, "unit": "GH/s" },
+                                "S9": {"value": 0, "unit": "GH/s" },
+                                "D3": {"value": 0, "unit": "MH/s" }}
     errors = False
     miner_errors = {}
 
@@ -104,7 +103,7 @@ def miners():
                                 })
             temperatures.update({miner.ip: temps})
             fans.update({miner.ip: {"speeds": fan_speeds}})
-            value, unit = update_unit_and_value(ghs5s, mapping[miner.model.model])
+            value, unit = update_unit_and_value(ghs5s, total_hash_rate_per_model[miner.model.model]['unit'])
             hash_rates.update({miner.ip: "{:3.2f} {}".format(value, unit)})
             hw_error_rates.update({miner.ip: hw_error_rate})
             uptimes.update({miner.ip: uptime})
