@@ -22,7 +22,7 @@ import time
 # e.g. update_unit_and_value(1024, "GH/s") => (1, "TH/s")
 def update_unit_and_value(value, unit):
     while value > 1024:
-        value = value / 1024
+        value = value / 1024.0
         if unit == 'MH/s':
             unit = 'GH/s'
         elif unit == 'GH/s':
