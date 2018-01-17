@@ -79,6 +79,10 @@ input {
     background-color: #FEEFB3;
 }
 
+.temp_warning {
+    background-color: #FEEFB3;
+}
+
 .error {
     color: #D8000C;
     background-color: #FFBABA;

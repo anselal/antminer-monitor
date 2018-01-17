@@ -113,7 +113,7 @@
                 <td>{{ miner_chips[active_miner.ip]['status']['Os'] }}</td>
                 <td>{{ miner_chips[active_miner.ip]['status']['Xs'] }}</td>
                 <td>{{ miner_chips[active_miner.ip]['status']['-'] }}</td>
-                <td>{{ temperatures[active_miner.ip] }}</td>
+                <td{%- if max(temperatures[active_miner.ip]) > 70 %} class="temp_warning"{%- endif %}>{{ temperatures[active_miner.ip] }}</td>
                 <td>{{ fans[active_miner.ip].speeds }}</td>
                 <td>{{ hash_rates[active_miner.ip] }}</td>
                 <td>{{ hw_error_rates[active_miner.ip] }}</td>
