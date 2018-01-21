@@ -2,6 +2,7 @@ import re
 from sets import Set
 from datetime import timedelta
 
+
 class miner_instance(object):
     def __init__(self, worker, working_chip_count, defective_chip_count, inactive_chip_count, expected_chip_count, hashrate_value, hashrate_unit, temps, fan_speeds, hw_error_rate_pct, uptime_secs, errors, miner):
         self.worker = worker
@@ -37,15 +38,16 @@ def update_unit_and_value(value, unit):
             assert False, "Unsupported unit: {}".format(unit)
     return (value, unit)
 
+
 def make_miner_instance_bitmain(miner, miner_stats, miner_pools):
     # if miner not accessible
     if miner_stats['STATUS'][0]['STATUS'] == 'error':
         return []
 
     hashrate_unit_map = {"L3+": "MH/s",
-                     "S7": "GH/s",
-                     "S9": "GH/s",
-                     "D3": "MH/s"}
+                         "S7": "GH/s",
+                         "S9": "GH/s",
+                         "D3": "MH/s"}
 
     # Get worker name
     worker = miner_pools['POOLS'][0]['User']
@@ -77,7 +79,8 @@ def make_miner_instance_bitmain(miner, miner_stats, miner_pools):
     # Get GH/S 5s
     hashrate_value = float(str(miner_stats['STATS'][1]['GHS 5s']))
     hashrate_unit = hashrate_unit_map[miner.model.model]
-    hashrate_value, hashrate_unit = update_unit_and_value(hashrate_value, hashrate_unit)
+    hashrate_value, hashrate_unit = update_unit_and_value(
+        hashrate_value, hashrate_unit)
 
     # Get HW Errors
     hw_error_rate = miner_stats['STATS'][1]['Device Hardware%']
