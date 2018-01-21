@@ -84,8 +84,8 @@
 
 <br>
 
-<fieldset name="active_miner_list">
-    <legend>Active Miners ({{ active_miners|length }})</legend>
+<fieldset name="miner_instance_list">
+    <legend>Active Miners ({{ active_miner_instances|length }})</legend>
     <table style="width:100%">
         <tr>
             <th>IP Address</th>
@@ -104,26 +104,26 @@
             <!--<th>JSON Info</th>-->
             <th>Remove</th>
         </tr>
-        {%- for active_miner in active_miners|sort(attribute='ip') %}
-            <tr{%- if active_miner.ip in miner_errors %} class="error"{%- endif %}>
-                <td><a target="_blank" href="http://{{ active_miner.ip }}">{{ active_miner.ip }}</a></td>
-                <td>{{ workers[active_miner.ip] }}</td>
-                <td title="{{ active_miner.model.description }}">{{ active_miner.model.model }}</td>
-                <td>{{ active_miner.remarks }}</td>
-                <td>{{ miner_chips[active_miner.ip]['status']['Os'] }}</td>
-                <td>{{ miner_chips[active_miner.ip]['status']['Xs'] }}</td>
-                <td>{{ miner_chips[active_miner.ip]['status']['-'] }}</td>
-                <td>{{ temperatures[active_miner.ip] }}</td>
-                <td>{{ fans[active_miner.ip].speeds }}</td>
-                <td>{{ hash_rates[active_miner.ip] }}</td>
-                <td>{{ hw_error_rates[active_miner.ip] }}</td>
-                <td>{{ uptimes[active_miner.ip] }}</td>
-                <td title="{%- if active_miner.ip in miner_errors %}{{ miner_errors[active_miner.ip] }}{%- endif %}">
-                    {%- if active_miner.ip in miner_errors %}Check your miner{%- else %}OK{%- endif %}</td>
-                <!--<td><a target="_blank" href="/{{ active_miner.ip }}/summary">Summary</a> |
-                    <a target="_blank" href="/{{ active_miner.ip }}/pools">Pools</a> |
-                    <a target="_blank" href="/{{ active_miner.ip }}/stats">Stats</a></td>-->
-                <td><a href={{ url_for('delete_miner', id=active_miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
+        {%- for miner_instance in active_miner_instances|sort(attribute='miner.ip') %}
+            <tr{%- if miner_instance.errors %} class="error"{%- endif %}>
+                <td><a target="_blank" href="http://{{ miner_instance.miner.ip }}">{{ miner_instance.miner.ip }}</a></td>
+                <td>{{ miner_instance.worker }}</td>
+                <td title="{{ miner_instance.miner.model.description }}">{{ miner_instance.miner.model.model }}</td>
+                <td>{{ miner_instance.miner.remarks }}</td>
+                <td>{{ miner_instance.working_chip_count }}</td>
+                <td>{{ miner_instance.defective_chip_count }}</td>
+                <td>{{ miner_instance.inactive_chip_count }}</td>
+                <td>{{ miner_instance.temps }}</td>
+                <td>{{ miner_instance.fan_speeds }}</td>
+                <td>{{ miner_instance.hashrate_pretty() }}</td>
+                <td>{{ miner_instance.hashhw_error_rate_pctrate_value }}</td>
+                <td>{{ miner_instance.uptime }}</td>
+                <td title="{%- if miner_instance.errors %}{{ miner_instance.errors }}{%- endif %}">
+                    {%- if miner_instance.errors %}{{ miner_instance.errors }}{%- else %}OK{%- endif %}</td>
+                <!--<td><a target="_blank" href="/{{ miner_instance.miner.ip }}/summary">Summary</a> |
+                    <a target="_blank" href="/{{ miner_instance.miner.ip }}/pools">Pools</a> |
+                    <a target="_blank" href="/{{ miner_instance.miner.ip }}/stats">Stats</a></td>-->
+                <td><a href={{ url_for('delete_miner', id=miner_instance.miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
             </tr>
         {%- endfor %}
     </table>
