@@ -27,6 +27,10 @@ def update_unit_and_value(value, unit):
             unit = 'GH/s'
         elif unit == 'GH/s':
             unit = 'TH/s'
+        elif unit == 'TH/s':
+            unit = 'PH/s'
+        elif unit == 'PH/s':
+            unit = 'EH/s'
         else:
             assert False, "Unsupported unit: {}".format(unit)
     return (value, unit)
