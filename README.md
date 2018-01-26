@@ -89,6 +89,7 @@ $ python update.db
   - BTC: `1HYCBovF6mqqKMyG4m2DQxXpdKmogK4Wuw`
   - LTC: `LLrjq6nRokS74yPMspitHkXv4nLtEyebNW`
   - DASH: `XuEnZtsCmWcDwKVe82wQddsfwUifXyeRoQ`
+  - ETH: `0x5bD8813Da5148fbc841bB18b9411fF72EdC8e10a`
 
 ### Referral
 
