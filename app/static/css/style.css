@@ -56,12 +56,17 @@ input {
     margin: 5px 0px 5px 0px;
 }
 
-.info, .success, .warning, .error {
+.verbose, .info, .success, .warning, .error {
     margin: 10px 0px;
     padding: 12px;
     border-radius: .5em;  // add rounder corners
     border: 1px solid;  // add border
     box-shadow: 1px 1px 3px #888;  // add shadow
+}
+
+.verbose {
+    color: rgb(116, 115, 115);
+    background-color: rgb(199, 199, 199);
 }
 
 .info {

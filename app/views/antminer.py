@@ -17,7 +17,7 @@ from app.models import Miner, MinerModel, Settings
 
 import time
 
-from miner_adapter import make_miner_instance_bitmain, update_unit_and_value
+from miner_adapter import make_miner_instance_bitmain, make_miner_instance_avalon7, update_unit_and_value
 
 @app.route('/')
 def miners():
@@ -27,14 +27,15 @@ def miners():
     models = MinerModel.query.all()
     active_miner_instances = []
     inactive_miners = []
-    total_hash_rate_per_model = {"L3+": {"value": 0, "unit": "<EMPTY>" },
-                                "S7": {"value": 0, "unit": "<EMPTY>" },
-                                "S9": {"value": 0, "unit": "<EMPTY>" },
-                                "D3": {"value": 0, "unit": "<EMPTY>" }}
+    # map is lazy initialized
+    total_hash_rate_per_model = {}
     errors = False
 
     for miner in miners:
-        miner_instance_list = make_miner_instance_bitmain(miner, get_stats(miner.ip), get_pools(miner.ip))
+        if miner.model.model == "A741":
+            miner_instance_list = make_miner_instance_avalon7(miner, get_stats(miner.ip), get_pools(miner.ip))
+        else:
+            miner_instance_list = make_miner_instance_bitmain(miner, get_stats(miner.ip), get_pools(miner.ip))
 
         # if miner not accessible
         if not miner_instance_list:
@@ -42,11 +43,21 @@ def miners():
             inactive_miners.append(miner)
         else:
             for miner_instance in miner_instance_list:
+                if not miner.model.model in total_hash_rate_per_model.keys():
+                    total_hash_rate_per_model[miner.model.model] = {"value": 0, "unit": "<EMPTY>" }
+
                 total_hash_rate_per_model[miner.model.model]["value"] += miner_instance.hashrate_value
                 total_hash_rate_per_model[miner.model.model]["unit"] = miner_instance.hashrate_unit
                 active_miner_instances.append(miner_instance)
 
-                # Flash error messages
+                # Log warnings
+                for message in miner_instance.verboses:
+                    logger.info(message)
+                    flash(message, "verbose")         
+                for message in miner_instance.warnings:
+                    logger.warning(message)
+                    flash(message, "warning")
+                    errors = True
                 if miner_instance.defective_chip_count > 0:
                     error_message = "[WARNING] '{}' chips are defective on miner '{}'.".format(miner_instance.defective_chip_count, miner.ip)
                     logger.warning(error_message)
@@ -63,7 +74,7 @@ def miners():
                     flash(error_message, "error")
                     errors = True
                     miner_instance.errors.append("CHIP_COUNT")
-                if max(miner_instance.temps) >= 70:
+                if miner_instance.temps and max(miner_instance.temps) >= miner.model.high_temp:
                     error_message = "[WARNING] High temperatures on miner '{}'.".format(miner.ip)
                     logger.warning(error_message)
                     flash(error_message, "warning")
@@ -88,8 +99,7 @@ def miners():
     total_hash_rate_per_model_temp = {}
     for key in total_hash_rate_per_model:
         value, unit = update_unit_and_value(total_hash_rate_per_model[key]["value"], total_hash_rate_per_model[key]["unit"])
-        if value > 0:
-            total_hash_rate_per_model_temp[key] = "{:3.2f} {}".format(value, unit)
+        total_hash_rate_per_model_temp[key] = "{:3.2f} {}".format(value, unit)
 
 
     end = time.clock()

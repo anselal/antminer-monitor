@@ -96,12 +96,12 @@
             <th title="'X' means defective">Chips (Xs)</th>
             <th title="'-' means instability of the power supply voltage or the defective hash board">Chips (-)</th>
             <th>Chip Temp(C)</th>
-            <th>Fan speeds (rpm)</th>
+            <th title="In rpm or percent depending on the model">Fan speeds</th>
             <th>Hashrate (5s)</th>
             <th>HW Error Rate %</th>
             <th>Uptime</th>
             <th>Status</th>
-            <!--<th>JSON Info</th>-->
+            <th>JSON Info</th>
             <th>Remove</th>
         </tr>
         {%- for miner_instance in active_miner_instances|sort(attribute='miner.ip') %}
@@ -114,15 +114,15 @@
                 <td>{{ miner_instance.defective_chip_count }}</td>
                 <td>{{ miner_instance.inactive_chip_count }}</td>
                 <td>{{ miner_instance.temps }}</td>
-                <td>{{ miner_instance.fan_speeds }}</td>
+                <td>{%- if miner_instance.fan_pct %} {{"{0:.0f}".format(miner_instance.fan_pct)}}% {%- else %} {{ miner_instance.fan_speeds }} {%- endif %}</td>
                 <td>{{ miner_instance.hashrate_pretty() }}</td>
-                <td>{{ miner_instance.hashhw_error_rate_pctrate_value }}</td>
+                <td>{{ "{0:.1f}".format(miner_instance.hw_error_rate_pct) }}</td>
                 <td>{{ miner_instance.uptime }}</td>
                 <td title="{%- if miner_instance.errors %}{{ miner_instance.errors }}{%- endif %}">
                     {%- if miner_instance.errors %}{{ miner_instance.errors }}{%- else %}OK{%- endif %}</td>
-                <!--<td><a target="_blank" href="/{{ miner_instance.miner.ip }}/summary">Summary</a> |
+                <td><a target="_blank" href="/{{ miner_instance.miner.ip }}/summary">Summary</a> |
                     <a target="_blank" href="/{{ miner_instance.miner.ip }}/pools">Pools</a> |
-                    <a target="_blank" href="/{{ miner_instance.miner.ip }}/stats">Stats</a></td>-->
+                    <a target="_blank" href="/{{ miner_instance.miner.ip }}/stats">Stats</a></td>
                 <td><a href={{ url_for('delete_miner', id=miner_instance.miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
             </tr>
         {%- endfor %}
@@ -131,69 +131,7 @@
 
 <br>
 </i>
-<!-- Fork me on GitHub-->
-<a target="_blank" href="https://github.com/anselal/antminer-monitor"><img
-        style="position: absolute; top: 0; right: 0; border: 0;"
-        src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67"
-        alt="Fork me on GitHub"
-        data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
 <i>Generated in {{ loading_time }} seconds. Source code <a target="_blank"
                                                            href="https://github.com/anselal/antminer-monitor">here</a>.
-    <script>
-        CoinWidgetCom.go({
-
-            /* make sure you update the wallet_address or you will not get your donations */
-            wallet_address: "1HYCBovF6mqqKMyG4m2DQxXpdKmogK4Wuw"
-
-            , currency: "bitcoin"
-            , counter: "hide"
-            , alignment: "br"
-            , qrcode: true
-            , auto_show: false
-            , lbl_button: "Donate"
-            , lbl_address: "Donate Bitcoin to this Address:"
-            , lbl_count: "donations"
-            , lbl_amount: "BTC"
-        });
-        CoinWidgetCom.go({
-
-            /* make sure you update the wallet_address or you will not get your donations */
-            wallet_address: "LLrjq6nRokS74yPMspitHkXv4nLtEyebNW"
-
-            , currency: "litecoin"
-            , counter: "hide"
-            , alignment: "ac"
-            , qrcode: true
-            , auto_show: false
-            , lbl_button: "Donate"
-            , lbl_address: "Donate Litecoin to this Address:"
-            , lbl_count: "donations"
-            , lbl_amount: "LTC"
-        });
-        CoinWidgetCom.go({
-
-            /* make sure you update the wallet_address or you will not get your donations */
-            wallet_address: "XuEnZtsCmWcDwKVe82wQddsfwUifXyeRoQ"
-
-            , currency: "dash"
-            , counter: "hide"
-            , alignment: "bl"
-            , qrcode: true
-            , auto_show: false
-            , lbl_button: "Donate"
-            , lbl_address: "Donate Dash to this Address:"
-            , lbl_count: "donations"
-            , lbl_amount: "DASH"
-        });
-        (function countdown(remaining) {
-            if(remaining === 0)
-                location.reload(true);
-            else {
-                document.getElementById('countdown').innerHTML = 'Refresh in: ' + remaining + ' sec';
-                setTimeout(function(){ countdown(remaining - 1); }, 1000);
-            }
-        })(120);
-    </script>
-    <!-- https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=dash:XiXwTjyN8DAsQaRh2pcFVyVSbXvk6Ph6ro?amount=0.001-->
 </body>
 </html>
