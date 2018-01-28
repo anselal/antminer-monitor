@@ -55,7 +55,11 @@ def miners():
     total_hash_rate_per_model = {"L3+": {"value": 0, "unit": "MH/s" },
                                 "S7": {"value": 0, "unit": "GH/s" },
                                 "S9": {"value": 0, "unit": "GH/s" },
-                                "D3": {"value": 0, "unit": "MH/s" }}
+                                "D3": {"value": 0, "unit": "MH/s" },
+                                "T9": {"value": 0, "unit": "TH/s" },
+                                "A3": {"value": 0, "unit": "GH/s" },
+                                "L3": {"value": 0, "unit": "MH/s" },}
+                                
     errors = False
     miner_errors = {}
 
