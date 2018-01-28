@@ -1,15 +1,15 @@
 import socket
 import json
+import sys
 
 
 class CgminerAPI(object):
     """ Cgminer RPC API wrapper. """
 
-    def __init__(self, host='localhost', port=4028, payload_command='command'):
+    def __init__(self, host='localhost', port=4028):
         self.data = {}
         self.host = host
         self.port = port
-        self.payload_command = payload_command
 
     def command(self, command, arg=None):
         """ Initialize a socket connection,
@@ -21,36 +21,22 @@ class CgminerAPI(object):
 
         try:
             sock.connect((self.host, self.port))
-
-            # payload = {"id":0,"jsonrpc":"2.0","method":"miner_getstat1"}
-            payload = {self.payload_command: command}
-
+            payload = {"command": command}
             if arg is not None:
                 # Parameter must be converted to basestring (no int)
-                payload.update({'parameter': str(arg)})
+                payload.update({'parameter': arg})
 
-            message = json.dumps(payload)
-
-            sock.send(message.encode())
-            response = str(sock.recv(65536).decode())
-
-            # Bug in Antminer JSON
-            # also add a comma on the output of the `stats` command by replacing '}{' with '},{'
-            if response.find("\"}{\"STATS\":"):
-                response = response.replace("\"}{\"STATS\":","\"},{\"STATS\":",1)
-
-            # Another bug in Antminer JSON
-            # the null byte makes json decoding unhappy
-            # TODO - test for NULL byte at end
-            if (response.endswith("}") == False):
-                response = response[:-1]
-
-            received = json.loads(response)
-
+            if sys.version_info.major == 2:
+                sock.send(json.dumps(payload))
+            if sys.version_info.major == 3:
+                sock.send(bytes(json.dumps(payload),'utf-8'))
+            received = self._receive(sock)
         except Exception as e:
-            return dict({'STATUS': [{'STATUS': 'error', 'description': str(e)}]})
+            return dict({'STATUS': [{'STATUS': 'error', 'description': e}]})
         else:
-            return received
+            # the null byte makes json decoding unhappy
+            # also add a comma on the output of the `stats` command by replacing '}{' with '},{'
+            return json.loads(received[:-1].replace('}{', '},{'))
         finally:
             # sock.shutdown(socket.SHUT_RDWR)
             sock.close()
@@ -60,7 +46,10 @@ class CgminerAPI(object):
         while 1:
             chunk = sock.recv(size)
             if chunk:
-                msg += chunk
+                if sys.version_info.major == 2:
+                    msg += chunk
+                if sys.version_info.major == 3:
+                    msg += chunk.decode('utf-8')
             else:
                 # end of message
                 break
@@ -79,3 +68,11 @@ class CgminerAPI(object):
 
         return out
 
+
+if __name__ == '__main__':
+    L3 = CgminerAPI(host='192.168.1.103')
+    print(L3.stats())
+    S7 = CgminerAPI(host='192.168.1.107')
+    print(S7.stats())
+    S9 = CgminerAPI(host='192.168.1.109')
+    print(S9.stats())
