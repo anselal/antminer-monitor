@@ -81,7 +81,7 @@ $ python -m pip install -r requirements.txt
 ```
  - Update your database. This ensures that your installed version supports the latest miner models and configuration settings, while keeping your added miners in the Database.
 ```sh
-$ python update.db
+$ python update_db.py
 ```
 
 ### Donations
