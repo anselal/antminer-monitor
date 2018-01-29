@@ -1,6 +1,9 @@
 # Workspaces 
 .idea
 
+#Shell scripts
+run.sh
+
 # Database files
 *.db
 

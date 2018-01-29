@@ -16,8 +16,17 @@ from app import app, db, logger, __version__
 from app.models import Miner, MinerModel, Settings
 
 import time
+import threading
 
 from miner_adapter import make_miner_instance_bitmain, make_miner_instance_avalon7, update_unit_and_value
+from mail_sender import MinerReporter
+
+def get_miner_instance(miner):
+    if miner.model.model == "A741":
+        return make_miner_instance_avalon7(miner, get_stats(miner.ip), get_pools(miner.ip))
+    else:
+        return make_miner_instance_bitmain(miner, get_stats(miner.ip), get_pools(miner.ip))
+
 
 @app.route('/')
 def miners():
@@ -32,10 +41,7 @@ def miners():
     errors = False
 
     for miner in miners:
-        if miner.model.model == "A741":
-            miner_instance_list = make_miner_instance_avalon7(miner, get_stats(miner.ip), get_pools(miner.ip))
-        else:
-            miner_instance_list = make_miner_instance_bitmain(miner, get_stats(miner.ip), get_pools(miner.ip))
+        miner_instance_list = get_miner_instance(miner)
 
         # if miner not accessible
         if not miner_instance_list:
@@ -44,7 +50,8 @@ def miners():
         else:
             for miner_instance in miner_instance_list:
                 if not miner.model.model in total_hash_rate_per_model.keys():
-                    total_hash_rate_per_model[miner.model.model] = {"value": 0, "unit": "<EMPTY>" }
+                    total_hash_rate_per_model[miner.model.model] = {
+                        "value": 0, "unit": "<EMPTY>"}
 
                 total_hash_rate_per_model[miner.model.model]["value"] += miner_instance.hashrate_value
                 total_hash_rate_per_model[miner.model.model]["unit"] = miner_instance.hashrate_unit
@@ -53,31 +60,15 @@ def miners():
                 # Log warnings
                 for message in miner_instance.verboses:
                     logger.info(message)
-                    flash(message, "verbose")         
+                    flash(message, "verbose")
                 for message in miner_instance.warnings:
                     logger.warning(message)
                     flash(message, "warning")
                     errors = True
-                if miner_instance.defective_chip_count > 0:
-                    error_message = "[WARNING] '{}' chips are defective on miner '{}'.".format(miner_instance.defective_chip_count, miner.ip)
-                    logger.warning(error_message)
-                    flash(error_message, "warning")
+                for message in miner_instance.errors:
+                    logger.warning(message)
+                    flash(message, "error")
                     errors = True
-                    miner_instance.errors.append("CHIP_DEFECTIVE")
-                if miner_instance.working_chip_count + miner_instance.defective_chip_count < miner_instance.expected_chip_count:
-                    error_message = "[ERROR] ASIC chips are missing from miner '{}'. Your Antminer '{}' has '{}/{} chips'." \
-                        .format(miner.ip,
-                                miner.model.model,
-                                miner_instance.working_chip_count + miner_instance.defective_chip_count,
-                                miner_instance.expected_chip_count)
-                    logger.error(error_message)
-                    flash(error_message, "error")
-                    errors = True
-                    miner_instance.errors.append("CHIP_COUNT")
-                if miner_instance.temps and max(miner_instance.temps) >= miner.model.high_temp:
-                    error_message = "[WARNING] High temperatures on miner '{}'.".format(miner.ip)
-                    logger.warning(error_message)
-                    flash(error_message, "warning")
 
     # Flash success/info message
     if not miners:
@@ -89,18 +80,13 @@ def miners():
         logger.info(error_message)
         flash(error_message, "info")
 
-    # flash("INFO !!! Check chips on your miner", "info")
-    # flash("SUCCESS !!! Miner added successfully", "success")
-    # flash("WARNING !!! Check temperatures on your miner", "warning")
-    # flash("ERROR !!!Check board(s) on your miner", "error")
-
     # Convert the total_hash_rate_per_model into a data structure that the template can
     # consume.
     total_hash_rate_per_model_temp = {}
     for key in total_hash_rate_per_model:
-        value, unit = update_unit_and_value(total_hash_rate_per_model[key]["value"], total_hash_rate_per_model[key]["unit"])
+        value, unit = update_unit_and_value(
+            total_hash_rate_per_model[key]["value"], total_hash_rate_per_model[key]["unit"])
         total_hash_rate_per_model_temp[key] = "{:3.2f} {}".format(value, unit)
-
 
     end = time.clock()
     loading_time = end - start
@@ -125,10 +111,12 @@ def add_miner():
     #    return "IP Address already added"
 
     try:
-        miner = Miner(ip=miner_ip, model_id=miner_model_id, remarks=miner_remarks)
+        miner = Miner(ip=miner_ip, model_id=miner_model_id,
+                      remarks=miner_remarks)
         db.session.add(miner)
         db.session.commit()
-        flash("Miner with IP Address {} added successfully".format(miner.ip), "success")
+        flash("Miner with IP Address {} added successfully".format(
+            miner.ip), "success")
     except IntegrityError as e:
         db.session.rollback()
         flash("IP Address {} already added".format(miner_ip), "error")
@@ -142,3 +130,20 @@ def delete_miner(id):
     db.session.delete(miner)
     db.session.commit()
     return redirect(url_for('miners'))
+
+
+@app.before_first_request
+def activate_job():
+    def run_job():
+        watch_dog = MinerReporter()
+        while True:
+            for miner in Miner.query.all():
+                miner_instance_list = get_miner_instance(miner)
+                for miner_instance in miner_instance_list:
+                    print("Checking instance: {} - {}".format(miner_instance.miner.ip,
+                                                              "OK" if watch_dog.check_health(miner_instance) else "ERROR"))
+            print("Sleeping for 5min")
+            time.sleep(5 * 60)
+
+    thread = threading.Thread(target=run_job)
+    thread.start()

@@ -21,6 +21,20 @@ class miner_instance(object):
         self.errors = errors
         self.miner = miner
 
+        if defective_chip_count > 0:
+            self.errors.append("[WARNING] '{}' chips are defective on miner '{}'.".format(defective_chip_count, miner.ip))
+        if working_chip_count + defective_chip_count < expected_chip_count:
+            error_message = "[ERROR] ASIC chips are missing from miner '{}'. Your Antminer '{}' has '{}/{} chips'." \
+                .format(miner.ip,
+                        miner.model.model,
+                        working_chip_count + defective_chip_count,
+                        expected_chip_count)
+            self.errors.append(error_message)
+        if temps and max(temps) >= miner.model.high_temp:
+            error_message = "[WARNING] High temperatures on miner '{}'.".format(miner.ip)
+            self.warnings.append(error_message)
+
+
     def hashrate_pretty(self):
         return "{:3.2f} {}".format(self.hashrate_value, self.hashrate_unit)
 
