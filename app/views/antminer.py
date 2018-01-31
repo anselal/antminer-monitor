@@ -4,6 +4,7 @@ from flask import (jsonify,
                    redirect,
                    url_for,
                    flash,
+                   Response,
                    )
 from flask.views import MethodView
 from app.views.antminer_json import (get_summary,
@@ -17,6 +18,8 @@ from app.models import Miner, MinerModel, Settings
 
 import time
 import threading
+import config
+from functools import wraps
 
 from miner_adapter import make_miner_instance_bitmain, make_miner_instance_avalon7, update_unit_and_value
 from mail_sender import MinerReporter
@@ -28,7 +31,30 @@ def get_miner_instance(miner):
         return make_miner_instance_bitmain(miner, get_stats(miner.ip), get_pools(miner.ip))
 
 
+def check_auth(username, password):
+    """This function is called to check if a username /
+    password combination is valid.
+    """
+    return username == config.BASIC_AUTH_USER and password == config.BASIC_AUTH_PWD
+
+def authenticate():
+    """Sends a 401 response that enables basic auth"""
+    return Response(
+    'Could not verify your access level for that URL.\n'
+    'You have to login with proper credentials', 401,
+    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
 @app.route('/')
+@requires_auth
 def miners():
     # Init variables
     start = time.clock()
@@ -101,6 +127,7 @@ def miners():
 
 
 @app.route('/add', methods=['POST'])
+@requires_auth
 def add_miner():
     miner_ip = request.form['ip']
     miner_model_id = request.form.get('model_id')
@@ -125,12 +152,40 @@ def add_miner():
 
 
 @app.route('/delete/<id>')
+@requires_auth
 def delete_miner(id):
     miner = Miner.query.filter_by(id=int(id)).first()
     db.session.delete(miner)
     db.session.commit()
     return redirect(url_for('miners'))
 
+@app.route('/restart/<id>')
+@requires_auth
+def restart_miner(id):
+    miner = Miner.query.filter_by(id=int(id)).first()
+    cgminer = CgminerAPI(host=miner.ip)
+    output = cgminer.restart()
+    return redirect(url_for('miners'))
+
+@app.route('/<ip>/summary')
+@requires_auth
+def summary(ip):
+    output = get_summary(ip)
+    return jsonify(output)
+
+
+@app.route('/<ip>/pools')
+@requires_auth
+def pools(ip):
+    output = get_pools(ip)
+    return jsonify(output)
+
+
+@app.route('/<ip>/stats')
+@requires_auth
+def stats(ip):
+    output = get_stats(ip)
+    return jsonify(output)
 
 @app.before_first_request
 def activate_job():

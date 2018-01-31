@@ -1,63 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Antminer Monitor {{ version }}</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css')}}">
 </head>
+
 <body>
-<h2>Antminer Monitor {{ version }}</h2>
-<fieldset style="width: 300px;">
-<legend>Countdown</legend>
-<b id="countdown"></b>
-</fieldset>
+    <h2>Antminer Monitor {{ version }}</h2>
+    <fieldset style="width: 300px;">
+        <legend>Countdown</legend>
+        <b id="countdown"></b>
+    </fieldset>
 
-<fieldset class="top" name="add" style="width: 300px;">
-    <legend>Add Miner</legend>
-    <form action="{{ url_for('add_miner') }}" method="POST">
-        <p>
-            <label for="ip">IP Address: </label>
-            <input required type="text" name="ip">
-        </p>
-        <p>
-            <label for="model_id">Model: </label>
-            <select required name="model_id">
-                <option disabled selected value> -- select an option --</option>
-                {%- for model in models|sort(attribute="model") %}
+    <fieldset class="top" name="add" style="width: 300px;">
+        <legend>Add Miner</legend>
+        <form action="{{ url_for('add_miner') }}" method="POST">
+            <p>
+                <label for="ip">IP Address: </label>
+                <input required type="text" name="ip">
+            </p>
+            <p>
+                <label for="model_id">Model: </label>
+                <select required name="model_id">
+                    <option disabled selected value> -- select an option --</option>
+                    {%- for model in models|sort(attribute="model") %}
                     <option value="{{ model.id }}">{{ model.model }} - {{ model.description }}</option>
-                {%- endfor %}
-            </select>
-        </p>
-        <p>
-            <label for="remarks">Remarks: </label>
-            <input type="text" name="remarks">
-        </p>
-        <p><input type="submit" value="Add model"></p>
-    </form>
-</fieldset>
+                    {%- endfor %}
+                </select>
+            </p>
+            <p>
+                <label for="remarks">Remarks: </label>
+                <input type="text" name="remarks">
+            </p>
+            <p>
+                <input type="submit" value="Add model">
+            </p>
+        </form>
+    </fieldset>
 
-<fieldset class="right top" name="total_hashrate" style="width: 300px; height:130px">
-    <legend>Total hashrate per model (5s)</legend>
-    <ul>
-        {%- for model in total_hash_rate_per_model|sort %}
-            <li><u>{{ model }}:</u> <strong>{{ total_hash_rate_per_model[model] }}</strong>
+    <fieldset class="right top" name="total_hashrate" style="width: 300px; height:130px">
+        <legend>Total hashrate per model (5s)</legend>
+        <ul>
+            {%- for model in total_hash_rate_per_model|sort %}
+            <li>
+                <u>{{ model }}:</u>
+                <strong>{{ total_hash_rate_per_model[model] }}</strong>
             </li>
-        {%- endfor %}
-    </ul>
-</fieldset>
+            {%- endfor %}
+        </ul>
+    </fieldset>
 
-<br>
-{%- with messages = get_flashed_messages(with_categories=true) %}
+    <br>
+    {%- with messages = get_flashed_messages(category_filter=['error', 'info', 'warning'], with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
             <div class="{{ category }}">
-                <strong>{{ message }}</strong>
+            <strong>{{ message }}</strong>
             </div>
         {% endfor %}
     {% endif %}
-{%- endwith %}
+    {%- endwith %}
 
-{%- if inactive_miners %}
+    {%- if inactive_miners %}
     <fieldset name="inactive_miner_list">
         <legend>In-active Miners ({{ inactive_miners|length }})</legend>
         <table style="width:100%">
@@ -69,67 +75,114 @@
                 <th>Remove</th>
             </tr>
             {%- for inactive_miner in inactive_miners|sort(attribute='ip') %}
-                <tr>
-                    <td><a target="_blank" href="http://{{ inactive_miner.ip }}">{{ inactive_miner.ip }}</a></td>
-                    <td>{{ inactive_miner.model.model }}</td>
-                    <td>{{ inactive_miner.remarks }}</td>
-                    <td>Error: Check connection or IP Address</td>
-                    <td><a href={{ url_for('delete_miner', id=inactive_miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
-                </tr>
+            <tr>
+                <td>
+                    <a target="_blank" href="http://{{ inactive_miner.ip }}">{{ inactive_miner.ip }}</a>
+                </td>
+                <td>{{ inactive_miner.model.model }}</td>
+                <td>{{ inactive_miner.remarks }}</td>
+                <td>Error: Check connection or IP Address</td>
+                <td>
+                    <a href={{ url_for( 'delete_miner', id=inactive_miner.id) }}>
+                        <img src="/static/images/assets/remove.png"></img>
+                    </a>
+                </td>
+            </tr>
             {%- endfor %}
         </table>
     </fieldset>
-{%- endif %}
+    {%- endif %}
 
-<br>
+    <br>
 
-<fieldset name="miner_instance_list">
-    <legend>Active Miners ({{ active_miner_instances|length }})</legend>
-    <table style="width:100%">
-        <tr>
-            <th>IP Address</th>
-            <th>Worker</th>
-            <th>Model</th>
-            <th>Remarks</th>
-            <th title="'O' means OK">Chips (Os)</th>
-            <th title="'X' means defective">Chips (Xs)</th>
-            <th title="'-' means instability of the power supply voltage or the defective hash board">Chips (-)</th>
-            <th>Chip Temp(C)</th>
-            <th title="In rpm or percent depending on the model">Fan speeds</th>
-            <th>Hashrate (5s)</th>
-            <th>HW Error Rate %</th>
-            <th>Uptime</th>
-            <th>Status</th>
-            <th>JSON Info</th>
-            <th>Remove</th>
-        </tr>
-        {%- for miner_instance in active_miner_instances|sort(attribute='miner.ip') %}
-            <tr{%- if miner_instance.errors %} class="error"{%- endif %}>
-                <td><a target="_blank" href="http://{{ miner_instance.miner.ip }}">{{ miner_instance.miner.ip }}</a></td>
+    <fieldset name="miner_instance_list">
+        <legend>Active Miners ({{ active_miner_instances|length }})</legend>
+        <table style="width:100%">
+            <tr>
+                <th>IP Address</th>
+                <th>Worker</th>
+                <th>Model</th>
+                <!-- <th>Remarks</th> -->
+                <th title="'O' means OK">Chips (Os)</th>
+                <th title="'X' means defective">Chips (Xs)</th>
+                <th title="'-' means instability of the power supply voltage or the defective hash board">Chips (-)</th>
+                <th>Chip Temp(C)</th>
+                <th title="In rpm or percent depending on the model">Fan speeds</th>
+                <th>Frequency</th>
+                <th>Hashrate (5s)</th>
+                <th>HW Error Rate %</th>
+                <th>Uptime</th>
+                <th>Status</th>
+                <th>JSON Info</th>
+                <th>Restart</th>
+                <th>Remove</th>
+            </tr>
+            {%- for miner_instance in active_miner_instances|sort(attribute='miner.ip') %}
+            <tr{%- if miner_instance.errors %} class="error" {%- endif %}>
+                <td>
+                    <a target="_blank" href="http://{{ miner_instance.miner.ip }}">{{ miner_instance.miner.ip }}</a>
+                </td>
                 <td>{{ miner_instance.worker }}</td>
                 <td title="{{ miner_instance.miner.model.description }}">{{ miner_instance.miner.model.model }}</td>
-                <td>{{ miner_instance.miner.remarks }}</td>
+                <!-- <td>{{ miner_instance.miner.remarks }}</td> -->
                 <td>{{ miner_instance.working_chip_count }}</td>
                 <td>{{ miner_instance.defective_chip_count }}</td>
                 <td>{{ miner_instance.inactive_chip_count }}</td>
                 <td>{{ miner_instance.temps }}</td>
-                <td>{%- if miner_instance.fan_pct %} {{"{0:.0f}".format(miner_instance.fan_pct)}}% {%- else %} {{ miner_instance.fan_speeds }} {%- endif %}</td>
+                <td>{{ miner_instance.fan_speed_pretty() }}</td>
+                <td>{{ miner_instance.frequency }}</td>
                 <td>{{ miner_instance.hashrate_pretty() }}</td>
                 <td>{{ "{0:.1f}".format(miner_instance.hw_error_rate_pct) }}</td>
                 <td>{{ miner_instance.uptime }}</td>
                 <td title="{%- if miner_instance.errors %}{{ miner_instance.errors }}{%- endif %}">
                     {%- if miner_instance.errors %}{{ miner_instance.errors }}{%- else %}OK{%- endif %}</td>
-                <td><a target="_blank" href="/{{ miner_instance.miner.ip }}/summary">Summary</a> |
+                <td>
+                    <a target="_blank" href="/{{ miner_instance.miner.ip }}/summary">Summary</a> |
                     <a target="_blank" href="/{{ miner_instance.miner.ip }}/pools">Pools</a> |
-                    <a target="_blank" href="/{{ miner_instance.miner.ip }}/stats">Stats</a></td>
-                <td><a href={{ url_for('delete_miner', id=miner_instance.miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
-            </tr>
-        {%- endfor %}
-    </table>
-</fieldset>
-
-<br>
-</i>
-<i>Generated in {{ loading_time }} seconds.
+                    <a target="_blank" href="/{{ miner_instance.miner.ip }}/stats">Stats</a>
+                </td>
+                <td>
+                    <a href="#" onclick="onRestart('{{ url_for( 'restart_miner', id=miner_instance.miner.id) }}')">
+                        <img src="/static/images/assets/restart.png"></img>
+                    </a>
+                </td>
+                <td>
+                    <a href={{ url_for( 'delete_miner', id=miner_instance.miner.id) }}>
+                        <img src="/static/images/assets/remove.png"></img>
+                    </a>
+                </td>
+                </tr>
+                {%- endfor %}
+        </table>
+    </fieldset>
+    {%- with messages = get_flashed_messages(category_filter=['verbose'], with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="{{ category }}">
+            <strong>{{ message }}</strong>
+            </div>
+        {% endfor %}
+    {% endif %}
+    {%- endwith %}
+    <br>
+    </i>
+    <i>Generated in {{ loading_time }} seconds.
+        <script>
+            // Confirm dialog for restart
+            function onRestart(restart_url) {
+                if (window.confirm("Are you want you want to restart miner?")) {
+                    this.document.location.href = restart_url;
+                }
+            }
+            (function countdown(remaining) {
+                if (remaining === 0)
+                    location.reload(true);
+                else {
+                    document.getElementById('countdown').innerHTML = 'Refresh in: ' + remaining + ' sec';
+                    setTimeout(function () { countdown(remaining - 1); }, 1000);
+                }
+            })(120);
+        </script>
 </body>
+
 </html>
