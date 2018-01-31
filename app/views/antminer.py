@@ -27,6 +27,10 @@ def update_unit_and_value(value, unit):
             unit = 'GH/s'
         elif unit == 'GH/s':
             unit = 'TH/s'
+        elif unit == 'TH/s':
+            unit = 'PH/s'
+        elif unit == 'PH/s':
+            unit = 'EH/s'
         else:
             assert False, "Unsupported unit: {}".format(unit)
     return (value, unit)
@@ -51,7 +55,11 @@ def miners():
     total_hash_rate_per_model = {"L3+": {"value": 0, "unit": "MH/s" },
                                 "S7": {"value": 0, "unit": "GH/s" },
                                 "S9": {"value": 0, "unit": "GH/s" },
-                                "D3": {"value": 0, "unit": "MH/s" }}
+                                "D3": {"value": 0, "unit": "MH/s" },
+                                "T9": {"value": 0, "unit": "TH/s" },
+                                "A3": {"value": 0, "unit": "GH/s" },
+                                "L3": {"value": 0, "unit": "MH/s" },}
+                                
     errors = False
     miner_errors = {}
 

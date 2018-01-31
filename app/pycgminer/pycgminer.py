@@ -1,5 +1,6 @@
 import socket
 import json
+import sys
 
 
 class CgminerAPI(object):
@@ -23,12 +24,15 @@ class CgminerAPI(object):
             payload = {"command": command}
             if arg is not None:
                 # Parameter must be converted to basestring (no int)
-                payload.update({'parameter': unicode(arg)})
+                payload.update({'parameter': arg})
 
-            sock.send(json.dumps(payload))
+            if sys.version_info.major == 2:
+                sock.send(json.dumps(payload))
+            if sys.version_info.major == 3:
+                sock.send(bytes(json.dumps(payload),'utf-8'))
             received = self._receive(sock)
         except Exception as e:
-            return dict({'STATUS': [{'STATUS': 'error', 'description': unicode(e)}]})
+            return dict({'STATUS': [{'STATUS': 'error', 'description': e}]})
         else:
             # the null byte makes json decoding unhappy
             # also add a comma on the output of the `stats` command by replacing '}{' with '},{'
@@ -42,7 +46,10 @@ class CgminerAPI(object):
         while 1:
             chunk = sock.recv(size)
             if chunk:
-                msg += chunk
+                if sys.version_info.major == 2:
+                    msg += chunk
+                if sys.version_info.major == 3:
+                    msg += chunk.decode('utf-8')
             else:
                 # end of message
                 break

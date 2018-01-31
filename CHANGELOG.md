@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+## [v0.3.0] - 2018-01-28
+### Bug fixes
+- :bug: fix(table): Fix remove icon not showing
+- :bug: fix(table): Fix remove icon not showing in inactive miners
+
+### New Features
+- :zap: improvement: Add conversion of hashrate unit
+- :zap: improvement(update_unit_and_value): Add support for Peta and Exa Hash
+- :zap: improvement(pycgminer): Add support for Python3. Closes #10
+- :up: update(create_db): Add support for T9. Closes #25
+- :up: update(create_db): Add support for A3. Closes #59
+- :up: update(create_db): Add support for L3
+
+### Added
+- :lipstick: update: Add remove miner icon
+- :star: new(table): Add Worker column
+- :heavy_plus_sign: Add update_db script
+- :pencil: docs(donations): Add ETH address
+
+### Changed
+- :lipstick: update: Remove JSON Info column
+- :shirt: refactor(views): Move json views to a separate file
+- :up: update(create_db): Add error handling. Print messages Fix #34
+- :heavy_plus_sign: :shirt: refactor(css): Separate most css from html
+- :pencil: docs(readme): Update README
+Updated supported miner models, requirements and installation instructions. Added update instructions
+
 ## [v0.2.0] - 2017-11-10
 ### Bug fixes
 - :pencil: docs(screenshot): Showing Wrong version. Closes #13
@@ -61,7 +88,8 @@
 - :star: Get in-app notifications about miner errors (needs refresh)
 - :star: Log errors to file
 
-[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.3.0...HEAD
+[v0.3.0]: https://github.com/anselal/antminer-monitor/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/anselal/antminer-monitor/compare/v0.1.1...v0.2.0
 [v0.1.1]: https://github.com/anselal/antminer-monitor/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/anselal/antminer-monitor/compare/v0.0.3...v0.1.0
