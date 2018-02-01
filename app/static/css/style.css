@@ -38,7 +38,7 @@ th {
 }
 
 .info, .success, .warning, .error {
-    margin: 10px 0px;
+    margin: 10px 0;
     padding: 12px;
     border-radius: .5em;  // add rounder corners
     border: 1px solid;  // add border
