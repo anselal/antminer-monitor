@@ -1,23 +1,21 @@
 body {
-    width: 1024px;
+    width: 90%;
     margin: 0 auto;
-    font-family: 'Consolas';
+    font-family: 'Consolas', Times, serif;
     font-size: 14px;
 }
 
-fieldset.top {
-    margin: 5px;
-    display: inline-block;
-    vertical-align: top;
+.container {
+    display: grid;
+    grid-template-columns: 300px auto 300px;
+    grid-gap: 3px;
 }
 
-.right {
-    float: right;
-}
-
-input[type="text"], textarea {
-    font-family: 'Consolas';
-    font-size: 12px;
+.addminer_container {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto auto;
+    grid-gap: 3px;
 }
 
 table, th, td {
@@ -39,29 +37,12 @@ th {
     color: white;
 }
 
-form {
-    display: table;
-}
-
-p {
-    display: table-row;
-}
-
-label {
-    display: table-cell;
-}
-
-input {
-    display: table-cell;
-    margin: 5px 0px 5px 0px;
-}
-
 .info, .success, .warning, .error {
-    margin: 10px 0px;
+    margin: 10px 0;
     padding: 12px;
-    border-radius: .5em;  // add rounder corners
-    border: 1px solid;  // add border
-    box-shadow: 1px 1px 3px #888;  // add shadow
+    border-radius: .5em; /* add rounder corners */
+    border: 1px solid; /* add border */
+    box-shadow: 1px 1px 3px #888; /* add shadow */
 }
 
 .info {

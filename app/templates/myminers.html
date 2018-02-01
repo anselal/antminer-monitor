@@ -13,39 +13,53 @@
 <b id="countdown"></b>
 </fieldset>
 
-<fieldset class="top" name="add" style="width: 300px;">
-    <legend>Add Miner</legend>
-    <form action="{{ url_for('add_miner') }}" method="POST">
-        <p>
-            <label for="ip">IP Address: </label>
-            <input required type="text" name="ip">
-        </p>
-        <p>
-            <label for="model_id">Model: </label>
-            <select required name="model_id">
-                <option disabled selected value> -- select an option --</option>
-                {%- for model in models|sort(attribute="model") %}
-                    <option value="{{ model.id }}">{{ model.model }} - {{ model.description }}</option>
+<div class="container">
+    <div>
+      <fieldset name="add">
+          <legend>Add Miner</legend>
+          <form action="{{ url_for('add_miner') }}" method="POST">
+              <div class="addminer_container">
+                  <div>
+                      <label for="ip">IP Address: </label>
+                  </div>
+                  <div>
+                      <input required type="text" name="ip">
+                  </div>
+                  <div>
+                      <label for="model_id">Model: </label>
+                  </div>
+                  <div>
+                      <select required name="model_id">
+                          <option disabled selected value> -- select an option --</option>
+                          {%- for model in models|sort(attribute="model") %}
+                              <option value="{{ model.id }}">{{ model.model }} - {{ model.description }}</option>
+                          {%- endfor %}
+                      </select>
+                  </div>
+                  <div>
+                      <label for="remarks">Remarks: </label>
+                  </div>
+                  <div>
+                      <input type="text" name="remarks">
+                  </div>
+                  <p><input type="submit" value="Add model"></p>
+              </div>
+          </form>
+      </fieldset>
+    </div>
+    <div></div>
+    <div>
+        <fieldset name="total_hashrate" style="height:130px">
+            <legend>Total hashrate per model (5s)</legend>
+            <ul>
+                {%- for model in total_hash_rate_per_model|sort %}
+                    <li><u>{{ model }}:</u> <strong>{{ total_hash_rate_per_model[model] }}</strong>
+                    </li>
                 {%- endfor %}
-            </select>
-        </p>
-        <p>
-            <label for="remarks">Remarks: </label>
-            <input type="text" name="remarks">
-        </p>
-        <p><input type="submit" value="Add model"></p>
-    </form>
-</fieldset>
-
-<fieldset class="right top" name="total_hashrate" style="width: 300px; height:130px">
-    <legend>Total hashrate per model (5s)</legend>
-    <ul>
-        {%- for model in total_hash_rate_per_model|sort %}
-            <li><u>{{ model }}:</u> <strong>{{ total_hash_rate_per_model[model] }}</strong>
-            </li>
-        {%- endfor %}
-    </ul>
-</fieldset>
+            </ul>
+        </fieldset>
+    </div>
+</div>
 
 <br>
 {%- with messages = get_flashed_messages(with_categories=true) %}
