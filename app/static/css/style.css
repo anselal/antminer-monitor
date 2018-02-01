@@ -1,7 +1,7 @@
 body {
     width: 90%;
     margin: 0 auto;
-    font-family: 'Consolas';
+    font-family: 'Consolas', Times, serif;
     font-size: 14px;
 }
 
