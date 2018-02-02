@@ -2,6 +2,11 @@ import re
 from datetime import timedelta
 from enum import Enum
 
+def dedupe_messages(l):
+    s = set()
+    for msg in l:
+        s.add(msg)
+    return list(s)
 
 class miner_instance(object):
     def __init__(self, worker, working_chip_count, defective_chip_count, inactive_chip_count, expected_chip_count, frequency, hashrate_value, hashrate_unit, temps, fan_speeds, fan_pct, hw_error_rate_pct, uptime_secs, verboses, warnings, errors, miner):
@@ -18,13 +23,10 @@ class miner_instance(object):
         self.fan_pct = fan_pct
         self.hw_error_rate_pct = hw_error_rate_pct
         self.uptime = timedelta(seconds=uptime_secs)
-        self.verboses = verboses
-        self.warnings = warnings
-        self.errors = errors
         self.miner = miner
 
         if defective_chip_count > 0:
-            self.errors.append("[WARNING] '{}' chips are defective on miner '{}'.".format(
+            errors.append("[WARNING] '{}' chips are defective on miner '{}'.".format(
                 defective_chip_count, miner.ip))
         if working_chip_count + defective_chip_count < expected_chip_count:
             error_message = "[ERROR] ASIC chips are missing from miner '{}'. Your Antminer '{}' has '{}/{} chips'." \
@@ -32,11 +34,15 @@ class miner_instance(object):
                         miner.model.model,
                         working_chip_count + defective_chip_count,
                         expected_chip_count)
-            self.errors.append(error_message)
+            errors.append(error_message)
         if temps and max(temps) >= miner.model.high_temp:
             error_message = "[WARNING] High temperatures on miner '{}'.".format(
                 miner.ip)
-            self.warnings.append(error_message)
+            warnings.append(error_message)
+        # Dedupe the messages
+        self.warnings = dedupe_messages(warnings)
+        self.errors = dedupe_messages(errors)
+        self.verboses = dedupe_messages(verboses)
 
     def fan_speed_pretty(self):
         if self.fan_pct and len(self.fan_speeds) == 1:
