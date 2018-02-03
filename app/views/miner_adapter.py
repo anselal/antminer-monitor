@@ -45,13 +45,18 @@ class miner_instance(object):
         self.verboses = dedupe_messages(verboses)
 
     def fan_speed_pretty(self):
-        if self.fan_pct and len(self.fan_speeds) == 1:
-            return "{0}rpm / {1:.0f}%".format(self.fan_speeds[0], self.fan_pct)
-        else:
-            return str(self.fan_speeds)
+        fan_pct = self.fan_pct
+        if fan_pct is None:
+            fan_pct = (100.0*max(self.fan_speeds))/self.miner.model.max_fan_rpm
+
+        return "{0} / {1:.0f}%".format(str(self.fan_speeds), fan_pct)
 
     def hashrate_pretty(self):
         return "{:3.2f} {}".format(self.hashrate_value, self.hashrate_unit)
+
+    def frequency_pretty(self):
+        frequency_pct = (100.0*self.frequency)/self.miner.model.default_frequency
+        return "{0} / {1:.0f}%".format(self.frequency, frequency_pct)
 
     def __str__(self):
         return "worker:{} working_chip_count:{} defective_chip_count:{} inactive_chip_count:{} expected_chip_count:{} frequency:{} hashrate_value:{} hashrate_unit:{} temps:{} fan_speeds:{} fan_pct:{} hw_error_rate_pct:{} uptime:{} verboses:{}, warnings:{} errors:{}".format(self.worker, self.working_chip_count, self.inactive_chip_count, self.defective_chip_count, self.expected_chip_count, self.frequency, self.hashrate_value, self.hashrate_unit, self.temps, self.fan_speeds, self.fan_pct, self.hw_error_rate_pct, self.uptime, self.verboses, self.warnings, self.errors)
