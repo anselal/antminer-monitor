@@ -190,13 +190,11 @@ def profits():
     # Init variables
     start = time.clock()
     miners_profit = get_miners_profit()
-    end = time.clock()
-    loading_time = end - start
+    loading_time = time.clock() - start
     return render_template('myprofits.html',
                            version=__version__,
-                           miners_profit=miners_profit,
-                           loading_time=loading_time,
-                           )
+                           data=miners_profit,
+                           loading_time=loading_time)
 
 @app.before_first_request
 def activate_job():

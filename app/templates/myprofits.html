@@ -5,6 +5,14 @@
     <meta charset="UTF-8">
     <title>Antminer Monitor {{ version }}</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css')}}">
+    <style>
+        .revenue {
+            color: green;
+        }
+        .cost {
+            color: red
+        }
+        </style>
 </head>
 
 <body>
@@ -21,9 +29,21 @@
     {% endif %}
     {%- endwith %}
 
+    <fieldset class="right top" name="total_coins" style="width: 300px; height:130px">
+            <legend>Total coins</legend>
+            <ul>
+                {%- for coin in data['total_coins']|sort %}
+                <li>
+                    <u>{{ coin }}:</u>
+                    <strong>{{ data['total_coins'][coin] }}</strong>
+                </li>
+                {%- endfor %}
+            </ul>
+        </fieldset>
+
     <br>
     <fieldset name="miner_profits">
-        <legend>Miners ({{ miners_profit|length }})</legend>
+        <legend>Miners ({{ data['profits']|length }})</legend>
         <table style="width:100%">
             <tr>
                 <th>Model</th>
@@ -31,27 +51,31 @@
                 <th>Watts</th>
                 <th>Coin</th>
                 <th>Network hashrate</th>
+                <th>Number of devices</th>
                 <th>Revenue / Day</th>
                 <th>Cost / Day</th>
                 <th>Daily return</th>
             </tr>
-            {%- for miner in miners_profit %}
+            {%- for miner in data['profits'] %}
             <tr{%- if miner.errors %} class="error" {%- endif %}>
-                <td>{{ miner.config.model_name }}</td>
-                <td>{{ miner.config.hashrate_pretty() }}</td>
-                <td>{{ miner.config.watts }}</td>
-                <td>{{ miner.algorithm}} </td>
-                <td>{{ miner.hashrate_pretty()}} </td>
-                <td>{{ miner.revenue_day }}</td>
-                <td>{{ miner.cost_day }}</td>
-                <td>{{ miner.daily_return_in_coin }}</td>
+                <td>{{ miner.miner_instance.miner.model.model }}</td>
+                <td>{{ miner.miner_instance.hashrate_pretty() }}</td>
+                <td>{{ miner.miner_instance.miner.model.watts }}</td>
+                <td>{{ miner.data['coin'].name }} </td>
+                <td>{{ miner.data['network_hash_value'] }} {{ miner.data['network_hash_unit'] }}</td>
+                <td>{{ miner.number_of_devices() }}</td>
+                <td>${{ miner.data['revenue_day'] }}</td>
+                <td>${{ miner.data['cost_day'] }}</td>
+                <td>{{ miner.data['daily_return_in_coin'] }}</td>
             </tr>
             {%- endfor %}
         </table>
     </fieldset>
     <br>
-    </i>
-    <i>Generated in {{ loading_time }} seconds.
+    <div>Daily <span class='revenue'>${{ data['daily_revenue_usd'] }}</span> <span class='cost'>${{ data['daily_cost_usd'] }}</span></div>
+    <div>Montly <span class='revenue'>${{ 30 * data['daily_revenue_usd'] }}</span> <span class='cost'>${{ 30 * data['daily_cost_usd'] }}</span></div>
+    <div>Yearly <span class='revenue'>${{ 365 * data['daily_revenue_usd'] }}</span> <span class='cost'>${{ 365 * data['daily_cost_usd'] }}</span></div>
+    <i>Generated in {{ loading_time }} seconds.</i>
 </body>
 
 </html>

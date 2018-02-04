@@ -143,7 +143,7 @@
                     </a>
                 </td>
                 </tr>
-                {%- endfor %}
+            {%- endfor %}
         </table>
     </fieldset>
     {%- with messages = get_flashed_messages(category_filter=['verbose'], with_categories=true) %}
@@ -156,8 +156,7 @@
     {% endif %}
     {%- endwith %}
     <br>
-    </i>
-    <i>Generated in {{ loading_time }} seconds.
+    <i>Generated in {{ loading_time }} seconds.</i>
         <script>
             // Confirm dialog for restart
             function onRestart(restart_url) {
