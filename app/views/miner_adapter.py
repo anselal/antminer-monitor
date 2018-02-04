@@ -1,12 +1,25 @@
 import re
 from datetime import timedelta
 from enum import Enum
+from app.pycgminer.pycgminer import CgminerAPI
+from app.views.antminer_json import (get_summary,
+                                     get_pools,
+                                     get_stats,
+                                     )
 
 def dedupe_messages(l):
     s = set()
     for msg in l:
         s.add(msg)
     return list(s)
+
+def get_miner_instance(miner):
+    if miner.model.model == "A741":
+        return make_miner_instance_avalon7(miner, get_stats(miner.ip), get_pools(miner.ip))
+    elif miner.model.model == "GekkoScience":
+        return make_miner_instance_gekkoscience(miner, get_stats(miner.ip), get_pools(miner.ip), get_summary(miner.ip))
+    else:
+        return make_miner_instance_bitmain(miner, get_stats(miner.ip), get_pools(miner.ip))
 
 class miner_instance(object):
     def __init__(self, worker, working_chip_count, defective_chip_count, inactive_chip_count, expected_chip_count, frequency, hashrate_value, hashrate_unit, temps, fan_speeds, fan_pct, hw_error_rate_pct, uptime_secs, verboses, warnings, errors, miner):
@@ -47,7 +60,10 @@ class miner_instance(object):
     def fan_speed_pretty(self):
         fan_pct = self.fan_pct
         if fan_pct is None:
-            fan_pct = (100.0*max(self.fan_speeds))/self.miner.model.max_fan_rpm
+            if self.fan_speeds:
+                fan_pct = (100.0*max(self.fan_speeds))/self.miner.model.max_fan_rpm
+            else:
+                fan_pct = 0
 
         return "{0} / {1:.0f}%".format(str(self.fan_speeds), fan_pct)
 
@@ -63,8 +79,6 @@ class miner_instance(object):
 
 # Update from one unit to the next if the value is greater than 1024.
 # e.g. update_unit_and_value(1024, "GH/s") => (1, "TH/s")
-
-
 def update_unit_and_value(value, unit):
     while value > 1000:
         value = value / 1000.0
@@ -72,8 +86,12 @@ def update_unit_and_value(value, unit):
             unit = 'GH/s'
         elif unit == 'GH/s':
             unit = 'TH/s'
+        elif unit == 'TH/s':
+            unit = 'PH/s'
+        elif unit == 'PH/s':
+            unit = 'EH/s'
         else:
-            assert False, "{} {}".format(value, unit)
+            assert False, "Unsupported unit: {}".format(unit)
     return (value, unit)
 
 
@@ -120,7 +138,7 @@ def make_miner_instance_bitmain(miner, miner_stats, miner_pools):
     # Get HW Errors
     hw_error_rate = miner_stats['STATS'][1]['Device Hardware%']
     # Get uptime
-    uptime = seconds = miner_stats['STATS'][1]['Elapsed']
+    uptime = miner_stats['STATS'][1]['Elapsed']
 
     return [miner_instance(worker=worker,
                            working_chip_count=Os,
@@ -139,7 +157,6 @@ def make_miner_instance_bitmain(miner, miner_stats, miner_pools):
                            warnings=[],
                            errors=[],
                            miner=miner)]
-
 
 def make_miner_instance_avalon7(miner, miner_stats, miner_pools):
     # if miner not accessible
@@ -298,8 +315,6 @@ class AvalonErrorCode(Enum):
 
 # Example:
 # 784 0 0 0
-
-
 def decode_echu(miner, current_hashrate, identifier, input):
     if type(current_hashrate) is not float:
         return ["INTERNAL_ERROR"]
@@ -338,12 +353,9 @@ def decode_echu(miner, current_hashrate, identifier, input):
 # MW will be something like:
 # 408 407 452 402 407 387 425 427 392 449 415 442 447 425 405 392 450 417 386 387 426 448
 # We just need to count the number of numbers.
-
-
 def decode_mw(input):
     nums = input.split(" ")
     return len(nums)
-
 
 def pvt_t_decode(input):
     temps = []
@@ -354,3 +366,40 @@ def pvt_t_decode(input):
     temps.sort(reverse=True)
     # Just get the top 4 temps.
     return temps[0:min(4, len(temps))]
+
+def make_miner_instance_gekkoscience(miner, miner_stats, miner_pools, miner_summary):
+    # if miner not accessible
+    if miner_stats['STATUS'][0]['STATUS'] == 'error':
+        return []
+
+    # Get worker name
+    worker = miner_pools['POOLS'][0]['User']
+
+    # Get GH/S 5s
+    hashrate_value = float(str(miner_summary['SUMMARY'][0]['MHS 5s']))
+    hashrate_unit = miner.model.hashrate_unit
+    hashrate_value, hashrate_unit = update_unit_and_value(
+        hashrate_value, hashrate_unit)
+
+    # Get HW Errors
+    hw_error_rate = miner_summary['SUMMARY'][0]['Device Hardware%']
+    # Get uptime
+    uptime = miner_summary['SUMMARY'][0]['Elapsed']
+
+    return [miner_instance(worker=worker,
+                           working_chip_count=int(miner.model.chips),
+                           defective_chip_count=0,
+                           inactive_chip_count=0,
+                           expected_chip_count=int(miner.model.chips),
+                           frequency=200,
+                           hashrate_value=hashrate_value,
+                           hashrate_unit=hashrate_unit,
+                           temps=[],
+                           fan_speeds=[],
+                           fan_pct=None,
+                           hw_error_rate_pct=hw_error_rate,
+                           uptime_secs=uptime,
+                           verboses=[],
+                           warnings=[],
+                           errors=[],
+                           miner=miner)]

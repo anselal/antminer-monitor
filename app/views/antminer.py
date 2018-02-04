@@ -7,12 +7,7 @@ from flask import (jsonify,
                    Response,
                    )
 from flask.views import MethodView
-from app.views.antminer_json import (get_summary,
-                                     get_pools,
-                                     get_stats,
-                                     )
 from sqlalchemy.exc import IntegrityError
-from app.pycgminer import CgminerAPI
 from app import app, db, logger, __version__
 from app.models import Miner, MinerModel, Settings
 
@@ -21,15 +16,8 @@ import threading
 import config
 from functools import wraps
 
-from miner_adapter import make_miner_instance_bitmain, make_miner_instance_avalon7, update_unit_and_value
+from miner_adapter import get_miner_instance, update_unit_and_value
 from mail_sender import MinerReporter
-
-def get_miner_instance(miner):
-    if miner.model.model == "A741":
-        return make_miner_instance_avalon7(miner, get_stats(miner.ip), get_pools(miner.ip))
-    else:
-        return make_miner_instance_bitmain(miner, get_stats(miner.ip), get_pools(miner.ip))
-
 
 def check_auth(username, password):
     """This function is called to check if a username /

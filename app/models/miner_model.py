@@ -12,6 +12,7 @@ class MinerModel(db.Model):
     high_temp = db.Column(db.Integer, nullable=False)
     default_frequency = db.Column(db.Float, nullable=False)
     max_fan_rpm = db.Column(db.Integer, nullable=False)
+    watts = db.Column(db.Integer, nullable=False)
 
     def __repr__(self):
         return "MinerModel(model='{}', chips={}, description='{}')".format(self.model, self.chips, self.description)
