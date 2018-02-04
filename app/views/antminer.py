@@ -10,14 +10,22 @@ from flask.views import MethodView
 from sqlalchemy.exc import IntegrityError
 from app import app, db, logger, __version__
 from app.models import Miner, MinerModel, Settings
+from app.views.antminer_json import (get_summary,
+                                     get_pools,
+                                     get_stats,
+                                     )
+from app.pycgminer.pycgminer import CgminerAPI
 
 import time
 import threading
 import config
 from functools import wraps
 
-from miner_adapter import get_miner_instance, update_unit_and_value
+from miner_adapter import detect_model, get_miner_instance, update_unit_and_value
 from mail_sender import MinerReporter
+from miners_profit import get_miners_profit
+
+
 
 def check_auth(username, password):
     """This function is called to check if a username /
@@ -113,12 +121,13 @@ def miners():
                            loading_time=loading_time,
                            )
 
-
 @app.route('/add', methods=['POST'])
 @requires_auth
 def add_miner():
     miner_ip = request.form['ip']
-    miner_model_id = request.form.get('model_id')
+
+    model_name = detect_model(miner_ip)
+    model = MinerModel.query.filter_by(model=model_name).first()
     miner_remarks = request.form['remarks']
 
     # exists = Miner.query.filter_by(ip="").first()
@@ -126,7 +135,7 @@ def add_miner():
     #    return "IP Address already added"
 
     try:
-        miner = Miner(ip=miner_ip, model_id=miner_model_id,
+        miner = Miner(ip=miner_ip, model_id=model.id,
                       remarks=miner_remarks)
         db.session.add(miner)
         db.session.commit()
@@ -174,6 +183,20 @@ def pools(ip):
 def stats(ip):
     output = get_stats(ip)
     return jsonify(output)
+
+@app.route('/profits')
+@requires_auth
+def profits():
+    # Init variables
+    start = time.clock()
+    miners_profit = get_miners_profit()
+    end = time.clock()
+    loading_time = end - start
+    return render_template('myprofits.html',
+                           version=__version__,
+                           miners_profit=miners_profit,
+                           loading_time=loading_time,
+                           )
 
 @app.before_first_request
 def activate_job():

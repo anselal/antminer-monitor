@@ -22,15 +22,6 @@
                 <input required type="text" name="ip">
             </p>
             <p>
-                <label for="model_id">Model: </label>
-                <select required name="model_id">
-                    <option disabled selected value> -- select an option --</option>
-                    {%- for model in models|sort(attribute="model") %}
-                    <option value="{{ model.id }}">{{ model.model }} - {{ model.description }}</option>
-                    {%- endfor %}
-                </select>
-            </p>
-            <p>
                 <label for="remarks">Remarks: </label>
                 <input type="text" name="remarks">
             </p>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Antminer Monitor {{ version }}</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css')}}">
+</head>
+
+<body>
+    <h2>Antminer Monitor {{ version }}</h2>
+
+    <br>
+    {%- with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="{{ category }}">
+            <strong>{{ message }}</strong>
+            </div>
+        {% endfor %}
+    {% endif %}
+    {%- endwith %}
+
+    <br>
+    <fieldset name="miner_profits">
+        <legend>Miners ({{ miners_profit|length }})</legend>
+        <table style="width:100%">
+            <tr>
+                <th>Model</th>
+                <th>Hashrate</th>
+                <th>Watts</th>
+                <th>Coin</th>
+                <th>Network hashrate</th>
+                <th>Revenue / Day</th>
+                <th>Cost / Day</th>
+                <th>Daily return</th>
+            </tr>
+            {%- for miner in miners_profit %}
+            <tr{%- if miner.errors %} class="error" {%- endif %}>
+                <td>{{ miner.config.model_name }}</td>
+                <td>{{ miner.config.hashrate_pretty() }}</td>
+                <td>{{ miner.config.watts }}</td>
+                <td>{{ miner.algorithm}} </td>
+                <td>{{ miner.hashrate_pretty()}} </td>
+                <td>{{ miner.revenue_day }}</td>
+                <td>{{ miner.cost_day }}</td>
+                <td>{{ miner.daily_return_in_coin }}</td>
+            </tr>
+            {%- endfor %}
+        </table>
+    </fieldset>
+    <br>
+    </i>
+    <i>Generated in {{ loading_time }} seconds.
+</body>
+
+</html>

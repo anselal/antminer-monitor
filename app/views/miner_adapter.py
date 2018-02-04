@@ -13,6 +13,27 @@ def dedupe_messages(l):
         s.add(msg)
     return list(s)
 
+def detect_model(ip):
+    stats = get_stats(ip)
+    if 'Type' in stats['STATS'][0]:
+        t = stats['STATS'][0]['Type']
+        if t == "Antminer D3":
+            return "D3"
+        elif t == "Antminer L3+":
+            return "L3+"
+        else:
+            raise Exception("Type not supported Type='{}'".format(t))
+    elif 'ID' in stats['STATS'][0]:
+        id = stats['STATS'][0]['ID']
+        if id == "AV70":
+            return "A741"
+        elif id == "GSD0":
+            return "GekkoScience"
+        else:
+            raise Exception("Type not supported ID='{}'".format(id))
+    else:
+        raise Exception("Type not supported")
+
 def get_miner_instance(miner):
     if miner.model.model == "A741":
         return make_miner_instance_avalon7(miner, get_stats(miner.ip), get_pools(miner.ip))
