@@ -183,34 +183,42 @@ def miners():
                            miner_errors=miner_errors,
                            )
 
+
 def detect_model(ip):
     stats = get_stats(ip)
 
     # Check for connectivity error.
     if stats['STATUS'][0]['STATUS'] == 'error':
-        flash("[ERROR] Error while connecting to miner at ip address '{}'.".format(ip), "error")
+        flash("[ERROR] Error while connecting to miner at ip address '{}'.".format(
+            ip), "error")
         return None
 
     # Try identifying the device.
-    t = 'Unknown'
+    model_name = None
     if 'Type' in stats['STATS'][0]:
-        t = stats['STATS'][0]['Type']
-        models = re.findall(r'Antminer (\w*\+?)', t)
+        models = re.findall(r'Antminer (\w*\+?)', stats['STATS'][0]['Type'])
         if len(models) == 1:
-            return models[0]
+            model_name = models[0]
     elif 'ID' in stats['STATS'][0]:
-        # ID is never supported for now, but it will in the future
-        # with Avalon miners.
-        t = stats['STATS'][0]['ID']
-    flash("[ERROR] Miner type '{}' at ip address '{}' is not supported.".format(t, ip), "error")
+        # ID are used for devices like Avalon.
+        model_name = stats['STATS'][0]['ID']
+
+    if not model_name is None:
+        model = MinerModel.query.filter_by(model=model_name).first()
+        if not model is None:
+            return model
+    else:
+        model_name = "Unknown"
+
+    flash("[ERROR] Miner type '{}' at ip address '{}' is not supported.".format(
+        model_name, ip), "error")
     return None
 
 @app.route('/add', methods=['POST'])
 def add_miner():
     miner_ip = request.form['ip']
-    model_name = detect_model(miner_ip)
-    if not model_name is None:
-        model = MinerModel.query.filter_by(model=model_name).first()    
+    model = detect_model(miner_ip)
+    if not model is None:
         miner_remarks = request.form['remarks']
 
         try:
