@@ -26,17 +26,6 @@
                       <input required type="text" name="ip">
                   </div>
                   <div>
-                      <label for="model_id">Model: </label>
-                  </div>
-                  <div>
-                      <select required name="model_id">
-                          <option disabled selected value> -- select an option --</option>
-                          {%- for model in models|sort(attribute="model") %}
-                              <option value="{{ model.id }}">{{ model.model }} - {{ model.description }}</option>
-                          {%- endfor %}
-                      </select>
-                  </div>
-                  <div>
                       <label for="remarks">Remarks: </label>
                   </div>
                   <div>
@@ -144,7 +133,6 @@
 </fieldset>
 
 <br>
-</i>
 <!-- Fork me on GitHub-->
 <a target="_blank" href="https://github.com/anselal/antminer-monitor"><img
         style="position: absolute; top: 0; right: 0; border: 0;"
@@ -152,7 +140,7 @@
         alt="Fork me on GitHub"
         data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
 <i>Generated in {{ loading_time }} seconds. Source code <a target="_blank"
-                                                           href="https://github.com/anselal/antminer-monitor">here</a>.
+                                                           href="https://github.com/anselal/antminer-monitor">here</a>.</i>
     <script>
         CoinWidgetCom.go({
 

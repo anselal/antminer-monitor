@@ -183,25 +183,44 @@ def miners():
                            miner_errors=miner_errors,
                            )
 
+def detect_model(ip):
+    stats = get_stats(ip)
+
+    # Check for connectivity error.
+    if stats['STATUS'][0]['STATUS'] == 'error':
+        flash("[ERROR] Error while connecting to miner at ip address '{}'.".format(ip), "error")
+        return None
+
+    # Try identifying the device.
+    t = 'Unknown'
+    if 'Type' in stats['STATS'][0]:
+        t = stats['STATS'][0]['Type']
+        models = re.findall(r'Antminer (\w*\+?)', t)
+        if len(models) == 1:
+            return models[0]
+    elif 'ID' in stats['STATS'][0]:
+        # ID is never supported for now, but it will in the future
+        # with Avalon miners.
+        t = stats['STATS'][0]['ID']
+    flash("[ERROR] Miner type '{}' at ip address '{}' is not supported.".format(t, ip), "error")
+    return None
 
 @app.route('/add', methods=['POST'])
 def add_miner():
     miner_ip = request.form['ip']
-    miner_model_id = request.form.get('model_id')
-    miner_remarks = request.form['remarks']
+    model_name = detect_model(miner_ip)
+    if not model_name is None:
+        model = MinerModel.query.filter_by(model=model_name).first()    
+        miner_remarks = request.form['remarks']
 
-    # exists = Miner.query.filter_by(ip="").first()
-    # if exists:
-    #    return "IP Address already added"
-
-    try:
-        miner = Miner(ip=miner_ip, model_id=miner_model_id, remarks=miner_remarks)
-        db.session.add(miner)
-        db.session.commit()
-        flash("Miner with IP Address {} added successfully".format(miner.ip), "success")
-    except IntegrityError as e:
-        db.session.rollback()
-        flash("IP Address {} already added".format(miner_ip), "error")
+        try:
+            miner = Miner(ip=miner_ip, model_id=model.id, remarks=miner_remarks)
+            db.session.add(miner)
+            db.session.commit()
+            flash("Miner with IP Address {} added successfully".format(miner.ip), "success")
+        except IntegrityError as e:
+            db.session.rollback()
+            flash("IP Address {} already added".format(miner_ip), "error")
 
     return redirect(url_for('miners'))
 
