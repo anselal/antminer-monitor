@@ -54,6 +54,7 @@
                 <th>Number of devices</th>
                 <th>Revenue / Day</th>
                 <th>Cost / Day</th>
+                <th>Break even price</th>
                 <th>Daily return</th>
             </tr>
             {%- for miner in data['profits'] %}
@@ -64,8 +65,9 @@
                 <td>{{ miner.data['coin'].name }} </td>
                 <td>{{ miner.data['network_hash_value'] }} {{ miner.data['network_hash_unit'] }}</td>
                 <td>{{ miner.number_of_devices() }}</td>
-                <td>${{ miner.data['revenue_day'] }}</td>
-                <td>${{ miner.data['cost_day'] }}</td>
+                <td>${{ miner.data['revenue_per_day'] }}</td>
+                <td>${{ miner.data['cost_per_day'] }}</td>
+                <td>${{ miner.data['break_even_price'] }}</td>
                 <td>{{ miner.data['daily_return_in_coin'] }}</td>
             </tr>
             {%- endfor %}

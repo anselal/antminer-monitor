@@ -14,7 +14,6 @@ class Coin(Enum):
     Dash = 3,
     Litecoin = 4
 
-
 def get_hashrate(value, unit, target_unit):
     while unit <> target_unit:
         value = value * 1000.0
@@ -74,14 +73,16 @@ class MiningInfo(object):
             network_hash = data['nethash']
             (network_hash_value, network_hash_unit) = update_unit_and_value(
                 network_hash / 1000000.0, "MH/s")
+            cost_per_day = round((COST_KWH * self.watts * 24)/1000.0, 2)
+            daily_return_in_coins = float(data['estimated_rewards'])
             return {
                 'coin': self.coin,
-                'algorithm': data['algorithm'],
-                'daily_return_in_coin': float(data['estimated_rewards']),
+                'daily_return_in_coin': daily_return_in_coins,
                 'network_hash_value': network_hash_value,
                 'network_hash_unit': network_hash_unit,
-                'revenue_day': self.extract_dollar(data['revenue']),
-                'cost_day': self.extract_dollar(data['cost'])
+                'revenue_per_day': self.extract_dollar(data['revenue']),
+                'cost_per_day': cost_per_day,
+                'break_even_price': round(cost_per_day / daily_return_in_coins, 2)
             }
         else:
             return None
@@ -102,11 +103,11 @@ class MinerProfit(object):
 
 def get_coin_from_model(model_str):
     # TODO: For now hardcoding the coin for a given model.
-    if model_str == "A741" or model_str == "S9" or model_str == "GekkoScience":
+    if model_str == "AV741" or model_str == "S9" or model_str == "GekkoScience":
         return Coin.Bitcoin
     elif model_str == "D3":
         return Coin.Dash
-    elif model_str == "L3+":
+    elif model_str == "L3+" or model_str == "R1-LTC":
         return Coin.Litecoin
     else:
         assert False, "Unsupported model {}".format(model_str)
@@ -128,8 +129,8 @@ def get_miners_profit():
             data = mi.fetch()
             if not data is None:
                 mp = MinerProfit(miner_instance=miner_instance, data=data)
-                total_revenue += data['revenue_day']
-                total_cost += data['cost_day']
+                total_revenue += data['revenue_per_day']
+                total_cost += data['cost_per_day']
 
                 prev_coin_amt = 0
                 if coin.name in total_coins:

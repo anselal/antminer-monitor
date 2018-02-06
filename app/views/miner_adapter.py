@@ -26,19 +26,23 @@ def detect_model(ip):
     elif 'ID' in stats['STATS'][0]:
         id = stats['STATS'][0]['ID']
         if id == "AV70":
-            return "A741"
+            return "AV741"
         elif id == "GSD0":
             return "GekkoScience"
+        elif id == "ANTR10":
+            return "R1-LTC"
         else:
             raise Exception("Type not supported ID='{}'".format(id))
     else:
         raise Exception("Type not supported")
 
 def get_miner_instance(miner):
-    if miner.model.model == "A741":
+    if miner.model.model == "AV741":
         return make_miner_instance_avalon7(miner, get_stats(miner.ip), get_pools(miner.ip))
     elif miner.model.model == "GekkoScience":
         return make_miner_instance_gekkoscience(miner, get_stats(miner.ip), get_pools(miner.ip), get_summary(miner.ip))
+    elif miner.model.model == "R1-LTC":
+        return make_miner_instance_r1_ltc(miner, get_stats(miner.ip), get_pools(miner.ip), get_summary(miner.ip))
     else:
         return make_miner_instance_bitmain(miner, get_stats(miner.ip), get_pools(miner.ip))
 
@@ -413,6 +417,43 @@ def make_miner_instance_gekkoscience(miner, miner_stats, miner_pools, miner_summ
                            inactive_chip_count=0,
                            expected_chip_count=int(miner.model.chips),
                            frequency=200,
+                           hashrate_value=hashrate_value,
+                           hashrate_unit=hashrate_unit,
+                           temps=[],
+                           fan_speeds=[],
+                           fan_pct=None,
+                           hw_error_rate_pct=hw_error_rate,
+                           uptime_secs=uptime,
+                           verboses=[],
+                           warnings=[],
+                           errors=[],
+                           miner=miner)]
+
+def make_miner_instance_r1_ltc(miner, miner_stats, miner_pools, miner_summary):
+    # if miner not accessible
+    if miner_stats['STATUS'][0]['STATUS'] == 'error':
+        return []
+
+    # Get worker name
+    worker = miner_pools['POOLS'][0]['User']
+
+    # Get GH/S 5s
+    hashrate_value = float(str(miner_summary['SUMMARY'][0]['GHS 5s']))
+    hashrate_unit = miner.model.hashrate_unit
+    hashrate_value, hashrate_unit = update_unit_and_value(
+        hashrate_value, hashrate_unit)
+
+    # Get HW Errors
+    hw_error_rate = miner_summary['SUMMARY'][0]['Device Hardware%']
+    # Get uptime
+    uptime = miner_summary['SUMMARY'][0]['Elapsed']
+
+    return [miner_instance(worker=worker,
+                           working_chip_count=int(miner.model.chips),
+                           defective_chip_count=0,
+                           inactive_chip_count=0,
+                           expected_chip_count=int(miner.model.chips),
+                           frequency=100,
                            hashrate_value=hashrate_value,
                            hashrate_unit=hashrate_unit,
                            temps=[],
