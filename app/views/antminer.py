@@ -150,10 +150,10 @@ def miners():
         logger.info(error_message)
         flash(error_message, "info")
 
-    # flash("INFO !!! Check chips on your miner", "info")
-    # flash("SUCCESS !!! Miner added successfully", "success")
-    # flash("WARNING !!! Check temperatures on your miner", "warning")
-    # flash("ERROR !!!Check board(s) on your miner", "error")
+    # flash("[INFO] Check chips on your miner", "info")
+    # flash("[SUCCESS] Miner added successfully", "success")
+    # flash("[WARNING] Check temperatures on your miner", "warning")
+    # flash("[ERROR] Check board(s) on your miner", "error")
 
     # Convert the total_hash_rate_per_model into a data structure that the template can
     # consume.
