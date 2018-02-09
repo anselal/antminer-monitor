@@ -69,6 +69,27 @@ class CgminerAPI(object):
         return out
 
 
+def get_summary(ip):
+    cgminer = CgminerAPI(host=ip)
+    output = cgminer.summary()
+    output.update({"IP": ip})
+    return dict(output)
+
+
+def get_pools(ip):
+    cgminer = CgminerAPI(host=ip)
+    output = cgminer.pools()
+    output.update({"IP": ip})
+    return dict(output)
+
+
+def get_stats(ip):
+    cgminer = CgminerAPI(host=ip)
+    output = cgminer.stats()
+    output.update({"IP": ip})
+    return dict(output)
+
+
 if __name__ == '__main__':
     L3 = CgminerAPI(host='192.168.1.103')
     print(L3.stats())

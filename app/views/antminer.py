@@ -5,36 +5,16 @@ from flask import (jsonify,
                    url_for,
                    flash,
                    )
-from flask.views import MethodView
-from app.views.antminer_json import (get_summary,
-                                     get_pools,
-                                     get_stats,
-                                     )
+from app.lib.pycgminer import (get_summary,
+                               get_pools,
+                               get_stats,
+                               )
 from sqlalchemy.exc import IntegrityError
-from app.pycgminer import CgminerAPI
 from app import app, db, logger, __version__
 from app.models import Miner, MinerModel, Settings
 import re
 from datetime import timedelta
 import time
-
-# Update from one unit to the next if the value is greater than 1024.
-# e.g. update_unit_and_value(1024, "GH/s") => (1, "TH/s")
-def update_unit_and_value(value, unit):
-    while value > 1024:
-        value = value / 1024.0
-        if unit == 'MH/s':
-            unit = 'GH/s'
-        elif unit == 'GH/s':
-            unit = 'TH/s'
-        elif unit == 'TH/s':
-            unit = 'PH/s'
-        elif unit == 'PH/s':
-            unit = 'EH/s'
-        else:
-            assert False, "Unsupported unit: {}".format(unit)
-    return (value, unit)
-
 
 
 @app.route('/')
