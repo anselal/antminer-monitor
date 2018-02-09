@@ -5,14 +5,19 @@ from enum import Enum
 from miner_adapter import get_miner_instance, update_unit_and_value
 from app.models import Miner, MinerModel
 
-COST_KWH = 0.11
-
-
 class Coin(Enum):
     Bitcoin = 1,
     BitcoinCash = 2,
     Dash = 3,
     Litecoin = 4
+
+    def get_symbol(self):
+        return {
+            Coin.Bitcoin: "BTC",
+            Coin.BitcoinCash: "BCH",
+            Coin.Dash: "DASH",
+            Coin.Litecoin: "LTC",
+        }[Coin(self.value)]
 
 def get_hashrate(value, unit, target_unit):
     while unit <> target_unit:
@@ -29,13 +34,25 @@ def get_hashrate(value, unit, target_unit):
             assert False, "Unsupported unit: {}".format(unit)
     return value
 
+class CoinPriceFetcher(object):
+    def __init__(self, coin):
+        self.coin = coin
+    def fetch(self):
+        url = "https://min-api.cryptocompare.com/data/price?fsym={}&tsyms=USD".format(self.coin.get_symbol())
+        r = requests.get(url)
+        if r.status_code == 200:
+            data = json.loads(r.text)
+            return data['USD']
+        else:
+            return 0
 
 class MiningInfo(object):
-    def __init__(self, coin, hashrate_value, hashrate_unit, watts):
+    def __init__(self, coin, hashrate_value, hashrate_unit, watts, usd_per_kwh):
         self.coin = coin
         self.hashrate_value = hashrate_value
         self.hashrate_unit = hashrate_unit
         self.watts = watts
+        self.usd_per_kwh = usd_per_kwh
 
     def get_target_hashrate_from_coin(self):
         if self.coin == Coin.Bitcoin or self.coin == Coin.BitcoinCash:
@@ -65,7 +82,7 @@ class MiningInfo(object):
         hashrate_api = get_hashrate(
             self.hashrate_value, self.hashrate_unit, self.get_target_hashrate_from_coin())
         url = "http://whattomine.com/coins/{}.json?hr={}&p={}&fee=0.0&cost={}".format(
-            id_url, hashrate_api, self.watts, COST_KWH)
+            id_url, hashrate_api, self.watts, self.usd_per_kwh)
         r = requests.get(url)
         if r.status_code == 200:
             data = json.loads(r.text)
@@ -73,7 +90,7 @@ class MiningInfo(object):
             network_hash = data['nethash']
             (network_hash_value, network_hash_unit) = update_unit_and_value(
                 network_hash / 1000000.0, "MH/s")
-            cost_per_day = round((COST_KWH * self.watts * 24)/1000.0, 2)
+            cost_per_day = round((self.usd_per_kwh * self.watts * 24)/1000.0, 2)
             daily_return_in_coins = float(data['estimated_rewards'])
             return {
                 'coin': self.coin,
@@ -82,7 +99,8 @@ class MiningInfo(object):
                 'network_hash_unit': network_hash_unit,
                 'revenue_per_day': self.extract_dollar(data['revenue']),
                 'cost_per_day': cost_per_day,
-                'break_even_price': round(cost_per_day / daily_return_in_coins, 2)
+                'break_even_price': round(cost_per_day / daily_return_in_coins, 2),
+                'current_price': CoinPriceFetcher(self.coin).fetch()
             }
         else:
             return None
@@ -113,7 +131,7 @@ def get_coin_from_model(model_str):
         assert False, "Unsupported model {}".format(model_str)
 
 
-def get_miners_profit():
+def get_miners_profit(usd_per_kwh):
     miners = Miner.query.all()
     result = []
     total_revenue = 0
@@ -125,7 +143,7 @@ def get_miners_profit():
         for miner_instance in miner_instance_list:
             coin = get_coin_from_model(miner_instance.miner.model.model)
             mi = MiningInfo(coin, miner_instance.hashrate_value,
-                            miner_instance.hashrate_unit, miner_instance.miner.model.watts)
+                            miner_instance.hashrate_unit, miner_instance.miner.model.watts, usd_per_kwh=usd_per_kwh)
             data = mi.fetch()
             if not data is None:
                 mp = MinerProfit(miner_instance=miner_instance, data=data)

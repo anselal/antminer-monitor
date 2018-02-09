@@ -1,11 +1,13 @@
 import re
 from datetime import timedelta
 from enum import Enum
+from urlparse import urlparse
 from app.pycgminer.pycgminer import CgminerAPI
 from app.views.antminer_json import (get_summary,
                                      get_pools,
                                      get_stats,
                                      )
+from app.models import MinerModel
 
 def dedupe_messages(l):
     s = set()
@@ -13,38 +15,57 @@ def dedupe_messages(l):
         s.add(msg)
     return list(s)
 
+
 def detect_model(ip):
     stats = get_stats(ip)
+
+    # Check for connectivity error.
+    if stats['STATUS'][0]['STATUS'] == 'error':
+        raise Exception("[ERROR] Error while connecting to miner at ip address '{}'.".format(
+            ip))
+
+    # Try identifying the device.
+    model_name = None
     if 'Type' in stats['STATS'][0]:
-        t = stats['STATS'][0]['Type']
-        if t == "Antminer D3":
-            return "D3"
-        elif t == "Antminer L3+":
-            return "L3+"
-        else:
-            raise Exception("Type not supported Type='{}'".format(t))
+        models = re.findall(r'Antminer (\w*\+?)', stats['STATS'][0]['Type'])
+        if len(models) == 1:
+            model_name = models[0]
     elif 'ID' in stats['STATS'][0]:
-        id = stats['STATS'][0]['ID']
-        if id == "AV70":
-            return "AV741"
-        elif id == "GSD0":
-            return "GekkoScience"
-        elif id == "ANTR10":
-            return "R1-LTC"
-        else:
-            raise Exception("Type not supported ID='{}'".format(id))
+        # ID are used for devices like Avalon.
+        model_name = stats['STATS'][0]['ID']
+        if model_name == "AV70":
+            model_name = "AV741"
+        elif model_name == "GSD0":
+            model_name = "GekkoScience"
+        elif model_name == "ANTR10":
+            model_name = "R1-LTC"
+
+    if not model_name is None:
+        model = MinerModel.query.filter_by(model=model_name).first()
+        if not model is None:
+            return model
     else:
-        raise Exception("Type not supported")
+        model_name = "Unknown"
+
+    raise Exception("[ERROR] Miner type '{}' at ip address '{}' is not supported.".format(
+        model_name, ip))
+
 
 def get_miner_instance(miner):
+    # if miner not accessible
+    miner_stats = get_stats(miner.ip)
+    if miner_stats['STATUS'][0]['STATUS'] == 'error':
+        return []
+
     if miner.model.model == "AV741":
-        return make_miner_instance_avalon7(miner, get_stats(miner.ip), get_pools(miner.ip))
+        return make_miner_instance_avalon7(miner, miner_stats, get_pools(miner.ip))
     elif miner.model.model == "GekkoScience":
-        return make_miner_instance_gekkoscience(miner, get_stats(miner.ip), get_pools(miner.ip), get_summary(miner.ip))
+        return make_miner_instance_gekkoscience(miner, miner_stats, get_pools(miner.ip), get_summary(miner.ip))
     elif miner.model.model == "R1-LTC":
-        return make_miner_instance_r1_ltc(miner, get_stats(miner.ip), get_pools(miner.ip), get_summary(miner.ip))
+        return make_miner_instance_r1_ltc(miner, miner_stats, get_pools(miner.ip), get_summary(miner.ip))
     else:
-        return make_miner_instance_bitmain(miner, get_stats(miner.ip), get_pools(miner.ip))
+        return make_miner_instance_bitmain(miner, miner_stats, get_pools(miner.ip))
+
 
 class miner_instance(object):
     def __init__(self, worker, working_chip_count, defective_chip_count, inactive_chip_count, expected_chip_count, frequency, hashrate_value, hashrate_unit, temps, fan_speeds, fan_pct, hw_error_rate_pct, uptime_secs, verboses, warnings, errors, miner):
@@ -86,7 +107,8 @@ class miner_instance(object):
         fan_pct = self.fan_pct
         if fan_pct is None:
             if self.fan_speeds:
-                fan_pct = (100.0*max(self.fan_speeds))/self.miner.model.max_fan_rpm
+                fan_pct = (100.0 * max(self.fan_speeds)) / \
+                    self.miner.model.max_fan_rpm
             else:
                 fan_pct = 0
 
@@ -96,7 +118,8 @@ class miner_instance(object):
         return "{:3.2f} {}".format(self.hashrate_value, self.hashrate_unit)
 
     def frequency_pretty(self):
-        frequency_pct = (100.0*self.frequency)/self.miner.model.default_frequency
+        frequency_pct = (100.0 * self.frequency) / \
+            self.miner.model.default_frequency
         return "{0} / {1:.0f}%".format(self.frequency, frequency_pct)
 
     def __str__(self):
@@ -104,6 +127,8 @@ class miner_instance(object):
 
 # Update from one unit to the next if the value is greater than 1024.
 # e.g. update_unit_and_value(1024, "GH/s") => (1, "TH/s")
+
+
 def update_unit_and_value(value, unit):
     while value > 1000:
         value = value / 1000.0
@@ -121,10 +146,6 @@ def update_unit_and_value(value, unit):
 
 
 def make_miner_instance_bitmain(miner, miner_stats, miner_pools):
-    # if miner not accessible
-    if miner_stats['STATUS'][0]['STATUS'] == 'error':
-        return []
-
     # Get worker name
     worker = miner_pools['POOLS'][0]['User']
     # Get miner's ASIC chips
@@ -183,11 +204,8 @@ def make_miner_instance_bitmain(miner, miner_stats, miner_pools):
                            errors=[],
                            miner=miner)]
 
-def make_miner_instance_avalon7(miner, miner_stats, miner_pools):
-    # if miner not accessible
-    if miner_stats['STATUS'][0]['STATUS'] == 'error':
-        return []
 
+def make_miner_instance_avalon7(miner, miner_stats, miner_pools):
     # Get worker name
     worker = miner_pools['POOLS'][0]['User']
 
@@ -340,6 +358,8 @@ class AvalonErrorCode(Enum):
 
 # Example:
 # 784 0 0 0
+
+
 def decode_echu(miner, current_hashrate, identifier, input):
     if type(current_hashrate) is not float:
         return ["INTERNAL_ERROR"]
@@ -378,9 +398,12 @@ def decode_echu(miner, current_hashrate, identifier, input):
 # MW will be something like:
 # 408 407 452 402 407 387 425 427 392 449 415 442 447 425 405 392 450 417 386 387 426 448
 # We just need to count the number of numbers.
+
+
 def decode_mw(input):
     nums = input.split(" ")
     return len(nums)
+
 
 def pvt_t_decode(input):
     temps = []
@@ -392,11 +415,8 @@ def pvt_t_decode(input):
     # Just get the top 4 temps.
     return temps[0:min(4, len(temps))]
 
-def make_miner_instance_gekkoscience(miner, miner_stats, miner_pools, miner_summary):
-    # if miner not accessible
-    if miner_stats['STATUS'][0]['STATUS'] == 'error':
-        return []
 
+def make_miner_instance_gekkoscience(miner, miner_stats, miner_pools, miner_summary):
     # Get worker name
     worker = miner_pools['POOLS'][0]['User']
 
@@ -429,11 +449,8 @@ def make_miner_instance_gekkoscience(miner, miner_stats, miner_pools, miner_summ
                            errors=[],
                            miner=miner)]
 
-def make_miner_instance_r1_ltc(miner, miner_stats, miner_pools, miner_summary):
-    # if miner not accessible
-    if miner_stats['STATUS'][0]['STATUS'] == 'error':
-        return []
 
+def make_miner_instance_r1_ltc(miner, miner_stats, miner_pools, miner_summary):
     # Get worker name
     worker = miner_pools['POOLS'][0]['User']
 

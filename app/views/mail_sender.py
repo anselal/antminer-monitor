@@ -25,6 +25,10 @@ class MinerReporter(object):
     def __init__(self):
         self.miner_last_error_set = set()
 
+    def unaccessible_miner(self, miner):
+        self.miner_last_error_set.add(miner.ip)
+        send_email(config.GMAIL_USER,config.GMAIL_PWD, config.EMAIL_TO, "Antmonitor: Miner not accessible {}".format(miner.ip), "")
+
     def check_health(self, miner_instance):
         # If there are no warnings, lets bail out sooner.
         ip = miner_instance.miner.ip

@@ -28,9 +28,20 @@
         {% endfor %}
     {% endif %}
     {%- endwith %}
-
+    <fieldset class="top" name="add" style="width: 300px;">
+        <legend>Add Miner</legend>
+        <form action="{{ url_for('profits') }}" method="POST">
+            <p>
+                <label for="usd_per_kwh">USD per Kwh: </label>
+                <input required type="text" name="usd_per_kwh" value="{{ usd_per_kwh }}">
+            </p>
+            <p>
+                <input type="submit" value="Refresh">
+            </p>
+        </form>
+    </fieldset>
     <fieldset class="right top" name="total_coins" style="width: 300px; height:130px">
-            <legend>Total coins</legend>
+            <legend>Total coins/day</legend>
             <ul>
                 {%- for coin in data['total_coins']|sort %}
                 <li>
@@ -55,6 +66,7 @@
                 <th>Revenue / Day</th>
                 <th>Cost / Day</th>
                 <th>Break even price</th>
+                <th>Current Price</th>
                 <th>Daily return</th>
             </tr>
             {%- for miner in data['profits'] %}
@@ -68,6 +80,7 @@
                 <td>${{ miner.data['revenue_per_day'] }}</td>
                 <td>${{ miner.data['cost_per_day'] }}</td>
                 <td>${{ miner.data['break_even_price'] }}</td>
+                <td>${{ miner.data['current_price'] }}</td>
                 <td>{{ miner.data['daily_return_in_coin'] }}</td>
             </tr>
             {%- endfor %}

@@ -121,29 +121,30 @@ def miners():
                            loading_time=loading_time,
                            )
 
+
 @app.route('/add', methods=['POST'])
 @requires_auth
 def add_miner():
     miner_ip = request.form['ip']
 
-    model_name = detect_model(miner_ip)
-    model = MinerModel.query.filter_by(model=model_name).first()
-    miner_remarks = request.form['remarks']
-
-    # exists = Miner.query.filter_by(ip="").first()
-    # if exists:
-    #    return "IP Address already added"
-
+    model = None
     try:
-        miner = Miner(ip=miner_ip, model_id=model.id,
-                      remarks=miner_remarks)
-        db.session.add(miner)
-        db.session.commit()
-        flash("Miner with IP Address {} added successfully".format(
-            miner.ip), "success")
-    except IntegrityError as e:
-        db.session.rollback()
-        flash("IP Address {} already added".format(miner_ip), "error")
+        model = detect_model(miner_ip)
+    except Exception as e:
+        flash(e.message, "error")
+
+    if not model is None:
+        try:
+            miner_remarks = request.form['remarks']
+            miner = Miner(ip=miner_ip, model_id=model.id,
+                          remarks=miner_remarks)
+            db.session.add(miner)
+            db.session.commit()
+            flash("Miner with IP Address {} added successfully".format(
+                miner.ip), "success")
+        except IntegrityError as e:
+            db.session.rollback()
+            flash("IP Address {} already added".format(miner_ip), "error")
 
     return redirect(url_for('miners'))
 
@@ -184,17 +185,19 @@ def stats(ip):
     output = get_stats(ip)
     return jsonify(output)
 
-@app.route('/profits')
+@app.route('/profits', methods=['GET', 'POST'])
 @requires_auth
 def profits():
+    usd_per_kwh = float(request.form.get('usd_per_kwh', 0.11))
     # Init variables
     start = time.clock()
-    miners_profit = get_miners_profit()
+    miners_profit = get_miners_profit(usd_per_kwh)
     loading_time = time.clock() - start
     return render_template('myprofits.html',
                            version=__version__,
                            data=miners_profit,
-                           loading_time=loading_time)
+                           loading_time=loading_time,
+                           usd_per_kwh=usd_per_kwh)
 
 @app.before_first_request
 def activate_job():
@@ -203,9 +206,12 @@ def activate_job():
         while True:
             for miner in Miner.query.all():
                 miner_instance_list = get_miner_instance(miner)
-                for miner_instance in miner_instance_list:
-                    print("Checking instance: {} - {}".format(miner_instance.miner.ip,
-                                                              "OK" if watch_dog.check_health(miner_instance) else "ERROR"))
+                if miner_instance_list:
+                    for miner_instance in miner_instance_list:
+                        print("Checking instance: {} - {}".format(miner_instance.miner.ip,
+                                                          "OK" if watch_dog.check_health(miner_instance) else "ERROR"))
+                else:
+                    watch_dog.unaccessible_miner(miner)
             print("Sleeping for 5min")
             time.sleep(5 * 60)
 
