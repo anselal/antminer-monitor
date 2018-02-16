@@ -8,7 +8,7 @@ from flask import (jsonify,
                    )
 from flask.views import MethodView
 from sqlalchemy.exc import IntegrityError
-from app import app, db, logger, __version__
+from app import app, db, logger, __version__, last_run_time, last_status_is_ok
 from app.models import Miner, MinerModel, Settings
 from app.views.antminer_json import (get_summary,
                                      get_pools,
@@ -20,25 +20,28 @@ import time
 import threading
 import config
 from functools import wraps
+import jinja2
+import json
 
 from miner_adapter import detect_model, get_miner_instance, update_unit_and_value
-from mail_sender import MinerReporter
+from mail_sender import send_email
 from miners_profit import get_miners_profit
-
-
 
 def check_auth(username, password):
     """This function is called to check if a username /
     password combination is valid.
     """
-    return username == config.BASIC_AUTH_USER and password == config.BASIC_AUTH_PWD
+    return (config.BASIC_AUTH_USER is None or
+        (username == config.BASIC_AUTH_USER and password == config.BASIC_AUTH_PWD))
+
 
 def authenticate():
     """Sends a 401 response that enables basic auth"""
     return Response(
-    'Could not verify your access level for that URL.\n'
-    'You have to login with proper credentials', 401,
-    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+        'Could not verify your access level for that URL.\n'
+        'You have to login with proper credentials', 401,
+        {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
 
 def requires_auth(f):
     @wraps(f)
@@ -49,13 +52,13 @@ def requires_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+
 @app.route('/')
 @requires_auth
 def miners():
     # Init variables
     start = time.clock()
     miners = Miner.query.all()
-    models = MinerModel.query.all()
     active_miner_instances = []
     inactive_miners = []
     # map is lazy initialized
@@ -111,6 +114,7 @@ def miners():
         total_hash_rate_per_model_temp[key] = "{:3.2f} {}".format(value, unit)
 
     end = time.clock()
+    models = MinerModel.query.all()
     loading_time = end - start
     return render_template('myminers.html',
                            version=__version__,
@@ -119,7 +123,7 @@ def miners():
                            inactive_miners=inactive_miners,
                            total_hash_rate_per_model=total_hash_rate_per_model_temp,
                            loading_time=loading_time,
-                           )
+                           is_request=True)
 
 
 @app.route('/add', methods=['POST'])
@@ -157,6 +161,7 @@ def delete_miner(id):
     db.session.commit()
     return redirect(url_for('miners'))
 
+
 @app.route('/restart/<id>')
 @requires_auth
 def restart_miner(id):
@@ -164,6 +169,7 @@ def restart_miner(id):
     cgminer = CgminerAPI(host=miner.ip)
     output = cgminer.restart()
     return redirect(url_for('miners'))
+
 
 @app.route('/<ip>/summary')
 @requires_auth
@@ -185,6 +191,7 @@ def stats(ip):
     output = get_stats(ip)
     return jsonify(output)
 
+
 @app.route('/profits', methods=['GET', 'POST'])
 @requires_auth
 def profits():
@@ -199,20 +206,60 @@ def profits():
                            loading_time=loading_time,
                            usd_per_kwh=usd_per_kwh)
 
+def render_without_request(template_name, **template_vars):
+    """
+    Usage is the same as flask.render_template:
+
+    render_without_request('my_template.html', var1='foo', var2='bar')
+    """
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('app', 'templates')
+    )
+    template = env.get_template(template_name)
+    return template.render(**template_vars)
+
+@app.route('/miners_status', methods=['GET', 'POST'])
+@requires_auth
+def status():
+    global index_add_counter
+    global last_run_time
+    if last_status_is_ok:
+        return json.dumps({ "status": "ok", "last_run": int(last_run_time) }), 200
+    else:
+        return json.dumps({ "error": "error in last validation" }), 500
+            
 @app.before_first_request
 def activate_job():
     def run_job():
-        watch_dog = MinerReporter()
+        global index_add_counter
+        global last_run_time
         while True:
+            active_miner_instances = []
+            inactive_miners = []
+            messages = []
             for miner in Miner.query.all():
                 miner_instance_list = get_miner_instance(miner)
-                if miner_instance_list:
-                    for miner_instance in miner_instance_list:
-                        print("Checking instance: {} - {}".format(miner_instance.miner.ip,
-                                                          "OK" if watch_dog.check_health(miner_instance) else "ERROR"))
+                if not miner_instance_list:
+                    inactive_miners.append(miner)
+                    messages.append(
+                        ('error', "[ERROR] {} not accessible".format(miner.ip)))
                 else:
-                    watch_dog.unaccessible_miner(miner)
-            print("Sleeping for 5min")
+                    for miner_instance in miner_instance_list:
+                        for error in miner_instance.errors:
+                            messages.append(('error', error))
+                        for warning in miner_instance.warnings:
+                            messages.append(('warning', warning))
+                        active_miner_instances.append(miner_instance)
+            last_status_is_ok = len(messages) == 0
+            last_run_time = time.time()
+            if not last_status_is_ok:
+                body_html = (render_without_request("inactive_miners.html", inactive_miners=inactive_miners) +
+                    render_without_request("active_miners.html", active_miner_instances=active_miner_instances) +
+                    render_without_request("messages.html", messages=messages))
+                body_plain = "Error founds while monitoring. Please go to {}\n".format(
+                    config.DOMAIN_ADDR)
+                send_email(config.GMAIL_USER, config.GMAIL_PWD,
+                           config.EMAIL_TO, "Antmonitor Alert", body_html, body_plain)
             time.sleep(5 * 60)
 
     thread = threading.Thread(target=run_job)

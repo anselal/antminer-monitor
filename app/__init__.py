@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, url_for
 from flask_sqlalchemy import SQLAlchemy
 import logging
 import os
@@ -29,5 +29,20 @@ handler.setFormatter(formatter)
 
 # add handlers to the logger
 logger.addHandler(handler)
+
+def remove_leading_slash(path):
+  if path.startswith("/"):
+    return path[1:]
+  else:
+    return path
+def url_for_ex(endpoint, **values):
+    # Remove the leading slashes because its required if
+    # this is hosted behind a nginx server.
+    return remove_leading_slash(url_for(endpoint, **values))
+app.jinja_env.globals.update(url_for_ex=url_for_ex)
+
+# Global variable for agent
+last_status_is_ok = True
+last_run_time = 0
 
 from app.views import antminer, antminer_json

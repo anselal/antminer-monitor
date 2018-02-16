@@ -1,0 +1,64 @@
+    <fieldset name="miner_instance_list">
+        <legend>Active Miners ({{ active_miner_instances|length }})</legend>
+        <table style="width:100%">
+            <tr>
+                <th>IP Address</th>
+                <th>Worker</th>
+                <th>Model</th>
+                <!-- <th>Remarks</th> -->
+                <th title="'O' means OK">Chips (Os)</th>
+                <th title="'X' means defective">Chips (Xs)</th>
+                <th title="'-' means instability of the power supply voltage or the defective hash board">Chips (-)</th>
+                <th>Chip Temp(C)</th>
+                <th title="In rpm or percent depending on the model">Fan speeds</th>
+                <th>Frequency</th>
+                <th>Hashrate (5s)</th>
+                <th>HW Error Rate %</th>
+                <th>Uptime</th>
+                <th>Status</th>
+                <th>JSON Info</th>
+                {%- if is_request %}
+                <th>Restart</th>
+                <th>Remove</th>
+                {%- endif %}
+            </tr>
+            {%- for miner_instance in active_miner_instances|sort(attribute='miner.ip') %}
+            <tr{%- if miner_instance.errors %} class="error" {%- endif %}>
+                <td>
+                    <a target="_blank" href="http://{{ miner_instance.miner.ip }}">{{ miner_instance.miner.ip }}</a>
+                </td>
+                <td>{{ miner_instance.worker }}</td>
+                <td title="{{ miner_instance.miner.model.description }}">{{ miner_instance.miner.model.model }}</td>
+                <!-- <td>{{ miner_instance.miner.remarks }}</td> -->
+                <td>{{ miner_instance.working_chip_count }}</td>
+                <td>{{ miner_instance.defective_chip_count }}</td>
+                <td>{{ miner_instance.inactive_chip_count }}</td>
+                <td>{{ miner_instance.temps }}</td>
+                <td>{{ miner_instance.fan_speed_pretty() }}</td>
+                <td>{{ miner_instance.frequency_pretty() }}</td>
+                <td>{{ miner_instance.hashrate_pretty() }}</td>
+                <td>{{ "{0:.1f}".format(miner_instance.hw_error_rate_pct) }}</td>
+                <td>{{ miner_instance.uptime }}</td>
+                <td title="{%- if miner_instance.errors %}{{ miner_instance.errors }}{%- endif %}">
+                    {%- if miner_instance.errors %}{{ miner_instance.errors }}{%- else %}OK{%- endif %}</td>
+                <td>
+                    <a target="_blank" href={{ url_for_ex('summary', ip=miner_instance.miner.ip) }}>Summary</a> |
+                    <a target="_blank" href="{{ url_for_ex('pools', ip=miner_instance.miner.ip) }}">Pools</a> |
+                    <a target="_blank" href="{{ url_for_ex('stats', ip=miner_instance.miner.ip) }}">Stats</a>
+                </td>
+                {%- if is_request %}
+                <td>
+                    <a href="#" onclick="onRestart('{{ url_for_ex( 'restart_miner', id=miner_instance.miner.id) }}')">
+                        <img src="static/images/assets/restart.png"></img>
+                    </a>
+                </td>
+                <td>
+                    <a href={{ url_for_ex( 'delete_miner', id=miner_instance.miner.id) }}>
+                        <img src="static/images/assets/remove.png"></img>
+                    </a>
+                </td>
+                {%- endif %}
+                </tr>
+            {%- endfor %}
+        </table>
+    </fieldset>

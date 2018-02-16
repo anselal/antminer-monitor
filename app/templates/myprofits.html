@@ -3,8 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Antminer Monitor {{ version }}</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css')}}">
+    <title>Miner Monitor {{ version }}</title>
+    <link rel="stylesheet" type="text/css" href="static/css/style.css">
     <style>
         .revenue {
             color: green;
@@ -16,7 +16,7 @@
 </head>
 
 <body>
-    <h2>Antminer Monitor {{ version }}</h2>
+    <h2>Miner Monitor {{ version }}</h2>
 
     <br>
     {%- with messages = get_flashed_messages(with_categories=true) %}
@@ -30,7 +30,7 @@
     {%- endwith %}
     <fieldset class="top" name="add" style="width: 300px;">
         <legend>Add Miner</legend>
-        <form action="{{ url_for('profits') }}" method="POST">
+        <form action="{{ url_for_ex('profits') }}" method="POST">
             <p>
                 <label for="usd_per_kwh">USD per Kwh: </label>
                 <input required type="text" name="usd_per_kwh" value="{{ usd_per_kwh }}">
