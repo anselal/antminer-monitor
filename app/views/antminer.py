@@ -4,11 +4,12 @@ from flask import (jsonify,
                    redirect,
                    url_for,
                    flash,
+                   abort,
                    Response,
                    )
 from flask.views import MethodView
 from sqlalchemy.exc import IntegrityError
-from app import app, db, logger, __version__, last_run_time, last_status_is_ok
+from app import app, db, logger, __version__, last_run_time, last_status_is_ok, AGENT_INTERVAL_SECS
 from app.models import Miner, MinerModel, Settings
 from app.views.antminer_json import (get_summary,
                                      get_pools,
@@ -22,7 +23,7 @@ import config
 from functools import wraps
 import jinja2
 import json
-
+import requests
 from miner_adapter import detect_model, get_miner_instance, update_unit_and_value
 from mail_sender import send_email
 from miners_profit import get_miners_profit
@@ -84,7 +85,6 @@ def miners():
 
                 # Log warnings
                 for message in miner_instance.verboses:
-                    logger.info(message)
                     flash(message, "verbose")
                 for message in miner_instance.warnings:
                     logger.warning(message)
@@ -98,11 +98,9 @@ def miners():
     # Flash success/info message
     if not miners:
         error_message = "[INFO] No miners added yet. Please add miners using the above form."
-        logger.info(error_message)
         flash(error_message, "info")
     elif not errors:
         error_message = "[INFO] All miners are operating normal. No errors found."
-        logger.info(error_message)
         flash(error_message, "info")
 
     # Convert the total_hash_rate_per_model into a data structure that the template can
@@ -206,6 +204,18 @@ def profits():
                            loading_time=loading_time,
                            usd_per_kwh=usd_per_kwh)
 
+
+@app.route('/miners_status', methods=['GET'])
+@requires_auth
+def status():
+    global last_run_time
+    global last_status_is_ok
+    global AGENT_INTERVAL_SECS
+    if time.time() - last_run_time >= AGENT_INTERVAL_SECS:
+        return abort(500)
+    else:
+        return jsonify({"last_run_time": last_run_time})
+
 def render_without_request(template_name, **template_vars):
     """
     Usage is the same as flask.render_template:
@@ -218,49 +228,75 @@ def render_without_request(template_name, **template_vars):
     template = env.get_template(template_name)
     return template.render(**template_vars)
 
-@app.route('/miners_status', methods=['GET', 'POST'])
-@requires_auth
-def status():
-    global index_add_counter
-    global last_run_time
-    if last_status_is_ok:
-        return json.dumps({ "status": "ok", "last_run": int(last_run_time) }), 200
-    else:
-        return json.dumps({ "error": "error in last validation" }), 500
-            
+def attempt_http_connect(miners, timeout):
+    failure = []
+    logger.info("Attempting to connect to all miners through HTTP")
+    for miner in miners: 
+        try:
+            url = "http://{}".format(miner.ip)
+            r = requests.get(url, timeout=timeout)
+            if r.status_code >= 500:
+                failure.append(miner)
+        except Exception as e:
+            logger.error(e)
+            failure.append(miner)
+
+    return failure
+
 @app.before_first_request
 def activate_job():
     def run_job():
-        global index_add_counter
         global last_run_time
+        global last_status_is_ok
+        global AGENT_INTERVAL_SECS
+        lightweight_last_run_time = 0
+        lightweight_interval_secs = 15
         while True:
-            active_miner_instances = []
-            inactive_miners = []
-            messages = []
-            for miner in Miner.query.all():
-                miner_instance_list = get_miner_instance(miner)
-                if not miner_instance_list:
-                    inactive_miners.append(miner)
-                    messages.append(
-                        ('error', "[ERROR] {} not accessible".format(miner.ip)))
-                else:
-                    for miner_instance in miner_instance_list:
-                        for error in miner_instance.errors:
-                            messages.append(('error', error))
-                        for warning in miner_instance.warnings:
-                            messages.append(('warning', warning))
-                        active_miner_instances.append(miner_instance)
-            last_status_is_ok = len(messages) == 0
-            last_run_time = time.time()
-            if not last_status_is_ok:
-                body_html = (render_without_request("inactive_miners.html", inactive_miners=inactive_miners) +
-                    render_without_request("active_miners.html", active_miner_instances=active_miner_instances) +
-                    render_without_request("messages.html", messages=messages))
-                body_plain = "Error founds while monitoring. Please go to {}\n".format(
-                    config.DOMAIN_ADDR)
-                send_email(config.GMAIL_USER, config.GMAIL_PWD,
-                           config.EMAIL_TO, "Antmonitor Alert", body_html, body_plain)
-            time.sleep(5 * 60)
+            try:
+                active_miner_instances = []
+                inactive_miners = []
+                messages = []
+
+                # Light check (HTTP connect)
+                if last_run_time != 0 and time.time() - lightweight_last_run_time >= lightweight_interval_secs:
+                    miners = Miner.query.all()
+                    inactive_miners = attempt_http_connect(miners=miners,timeout=5)
+                    if inactive_miners:
+                        messages.append(('error', "Some servers cannot be contacted through HTTP connect"))
+                        break
+                    lightweight_last_run_time = time.time()
+
+                # Expensive check (CGMiner API)
+                if not messages and time.time() - last_run_time >= AGENT_INTERVAL_SECS:
+                    logger.info("CGMiner API checks in progress...")
+                    miners = Miner.query.all()
+                    for miner in miners:
+                        miner_instance_list = get_miner_instance(miner)
+                        if not miner_instance_list:
+                            inactive_miners.append(miner)
+                            messages.append(
+                                ('error', "[ERROR] {} not accessible".format(miner.ip)))
+                        else:
+                            for miner_instance in miner_instance_list:
+                                for error in miner_instance.errors:
+                                    messages.append(('error', error))
+                                for warning in miner_instance.warnings:
+                                    messages.append(('warning', warning))
+                                active_miner_instances.append(miner_instance)
+
+                    last_status_is_ok = len(messages) == 0
+                    lightweight_last_run_time = last_run_time = time.time()
+                    if not last_status_is_ok:
+                        body_html = (render_without_request("inactive_miners.html", inactive_miners=inactive_miners) +
+                            render_without_request("active_miners.html", active_miner_instances=active_miner_instances) +
+                            render_without_request("messages.html", messages=messages))
+                        body_plain = "Error founds while monitoring. Please go to {}\n".format(
+                            config.DOMAIN_ADDR)
+                        send_email(config.GMAIL_USER, config.GMAIL_PWD,
+                                config.EMAIL_TO, "Antmonitor Alert", body_html, body_plain)
+            except Exception as e:
+                logger.error(e)
+            time.sleep(lightweight_interval_secs)
 
     thread = threading.Thread(target=run_job)
     thread.start()

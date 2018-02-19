@@ -17,11 +17,11 @@ app.logger.setLevel(logging.DEBUG)
 
 # logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.INFO)
 
 # create a file handler
 handler = logging.FileHandler(os.path.join(basedir, 'logs/antminer_monitor.log'), mode='a')  # mode 'a' is default
-handler.setLevel(logging.WARNING)
+handler.setLevel(logging.INFO)
 
 # create a logging format
 formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s')
@@ -44,5 +44,6 @@ app.jinja_env.globals.update(url_for_ex=url_for_ex)
 # Global variable for agent
 last_status_is_ok = True
 last_run_time = 0
+AGENT_INTERVAL_SECS = 5*60
 
 from app.views import antminer, antminer_json

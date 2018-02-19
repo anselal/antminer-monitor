@@ -11,7 +11,6 @@
                 <th title="'-' means instability of the power supply voltage or the defective hash board">Chips (-)</th>
                 <th>Chip Temp(C)</th>
                 <th title="In rpm or percent depending on the model">Fan speeds</th>
-                <th>Frequency</th>
                 <th>Hashrate (5s)</th>
                 <th>HW Error Rate %</th>
                 <th>Uptime</th>
@@ -35,7 +34,6 @@
                 <td>{{ miner_instance.inactive_chip_count }}</td>
                 <td>{{ miner_instance.temps }}</td>
                 <td>{{ miner_instance.fan_speed_pretty() }}</td>
-                <td>{{ miner_instance.frequency_pretty() }}</td>
                 <td>{{ miner_instance.hashrate_pretty() }}</td>
                 <td>{{ "{0:.1f}".format(miner_instance.hw_error_rate_pct) }}</td>
                 <td>{{ miner_instance.uptime }}</td>

@@ -10,7 +10,6 @@ class MinerModel(db.Model):
     hashrate_value = db.Column(db.Float, nullable=False)
     hashrate_unit = db.Column(db.String(10), nullable=False)
     high_temp = db.Column(db.Integer, nullable=False)
-    default_frequency = db.Column(db.Float, nullable=False)
     max_fan_rpm = db.Column(db.Integer, nullable=False)
     watts = db.Column(db.Integer, nullable=False)
 

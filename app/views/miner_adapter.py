@@ -2,6 +2,7 @@ import re
 from datetime import timedelta
 from enum import Enum
 from urlparse import urlparse
+from app import logger
 from app.pycgminer.pycgminer import CgminerAPI
 from app.views.antminer_json import (get_summary,
                                      get_pools,
@@ -35,6 +36,8 @@ def detect_model(ip):
         model_name = stats['STATS'][0]['ID']
         if model_name == "AV70":
             model_name = "AV741"
+        elif model_name == "AV80":
+            model_name = "AV821"
         elif model_name == "GSD0":
             model_name = "GekkoScience"
         elif model_name == "ANTR10":
@@ -56,9 +59,8 @@ def get_miner_instance(miner):
     miner_stats = get_stats(miner.ip)
     if miner_stats['STATUS'][0]['STATUS'] == 'error':
         return []
-
-    if miner.model.model == "AV741":
-        return make_miner_instance_avalon7(miner, miner_stats, get_pools(miner.ip))
+    if miner.model.model == "AV741" or miner.model.model == "AV821":
+        return make_miner_instance_avalon7or8(miner, miner_stats, get_pools(miner.ip))
     elif miner.model.model == "GekkoScience":
         return make_miner_instance_gekkoscience(miner, miner_stats, get_pools(miner.ip), get_summary(miner.ip))
     elif miner.model.model == "R1-LTC":
@@ -68,13 +70,12 @@ def get_miner_instance(miner):
 
 
 class miner_instance(object):
-    def __init__(self, worker, working_chip_count, defective_chip_count, inactive_chip_count, expected_chip_count, frequency, hashrate_value, hashrate_unit, temps, fan_speeds, fan_pct, hw_error_rate_pct, uptime_secs, verboses, warnings, errors, miner):
+    def __init__(self, worker, working_chip_count, defective_chip_count, inactive_chip_count, expected_chip_count, hashrate_value, hashrate_unit, temps, fan_speeds, fan_pct, hw_error_rate_pct, uptime_secs, verboses, warnings, errors, miner):
         self.worker = worker
         self.working_chip_count = working_chip_count
         self.defective_chip_count = defective_chip_count
         self.inactive_chip_count = inactive_chip_count
         self.expected_chip_count = expected_chip_count
-        self.frequency = frequency
         self.hashrate_value = hashrate_value
         self.hashrate_unit = hashrate_unit
         self.temps = temps
@@ -117,13 +118,8 @@ class miner_instance(object):
     def hashrate_pretty(self):
         return "{:3.2f} {}".format(self.hashrate_value, self.hashrate_unit)
 
-    def frequency_pretty(self):
-        frequency_pct = (100.0 * self.frequency) / \
-            self.miner.model.default_frequency
-        return "{0} / {1:.0f}%".format(self.frequency, frequency_pct)
-
     def __str__(self):
-        return "worker:{} working_chip_count:{} defective_chip_count:{} inactive_chip_count:{} expected_chip_count:{} frequency:{} hashrate_value:{} hashrate_unit:{} temps:{} fan_speeds:{} fan_pct:{} hw_error_rate_pct:{} uptime:{} verboses:{}, warnings:{} errors:{}".format(self.worker, self.working_chip_count, self.inactive_chip_count, self.defective_chip_count, self.expected_chip_count, self.frequency, self.hashrate_value, self.hashrate_unit, self.temps, self.fan_speeds, self.fan_pct, self.hw_error_rate_pct, self.uptime, self.verboses, self.warnings, self.errors)
+        return "worker:{} working_chip_count:{} defective_chip_count:{} inactive_chip_count:{} expected_chip_count:{} hashrate_value:{} hashrate_unit:{} temps:{} fan_speeds:{} fan_pct:{} hw_error_rate_pct:{} uptime:{} verboses:{}, warnings:{} errors:{}".format(self.worker, self.working_chip_count, self.inactive_chip_count, self.defective_chip_count, self.expected_chip_count, self.hashrate_value, self.hashrate_unit, self.temps, self.fan_speeds, self.fan_pct, self.hw_error_rate_pct, self.uptime, self.verboses, self.warnings, self.errors)
 
 # Update from one unit to the next if the value is greater than 1024.
 # e.g. update_unit_and_value(1024, "GH/s") => (1, "TH/s")
@@ -173,8 +169,6 @@ def make_miner_instance_bitmain(miner, miner_stats, miner_pools):
     fan_speeds = [miner_stats['STATS'][1][fan] for fan in
                   sorted(miner_stats['STATS'][1].keys(), key=lambda x: str(x)) if
                   re.search("fan" + '[0-9]', fan) if miner_stats['STATS'][1][fan] != 0]
-    # Frequency
-    frequency = float(str(miner_stats['STATS'][1]['frequency']))
     # Get GH/S 5s
     hashrate_value = float(str(miner_stats['STATS'][1]['GHS 5s']))
     hashrate_unit = miner.model.hashrate_unit
@@ -191,7 +185,6 @@ def make_miner_instance_bitmain(miner, miner_stats, miner_pools):
                            defective_chip_count=Xs,
                            inactive_chip_count=_dash_chips,
                            expected_chip_count=total_chips,
-                           frequency=frequency,
                            hashrate_value=hashrate_value,
                            hashrate_unit=hashrate_unit,
                            temps=temps,
@@ -205,7 +198,7 @@ def make_miner_instance_bitmain(miner, miner_stats, miner_pools):
                            miner=miner)]
 
 
-def make_miner_instance_avalon7(miner, miner_stats, miner_pools):
+def make_miner_instance_avalon7or8(miner, miner_stats, miner_pools):
     # Get worker name
     worker = miner_pools['POOLS'][0]['User']
 
@@ -222,12 +215,13 @@ def make_miner_instance_avalon7(miner, miner_stats, miner_pools):
                 temps = []
                 fan = 0
                 fan_pct = 0.0
-                frequency = 0
                 hashrate_value = 0
                 asic_count = 0
                 hw_error_rate_pct = 0
 
-                # TODO: Read inactive chip count
+                # Avalon miners don't seem to have a inactive
+                # chip indication. they seem to indicate status
+                # by using the ECHU
                 for l in re.findall(r'([A-Za-z]*)\[([0-9]*\.?[0-9]+)(?:%?)\]', i[j]):
                     if l[0] == 'Elapsed':
                         elapsed = int(l[1])
@@ -235,12 +229,18 @@ def make_miner_instance_avalon7(miner, miner_stats, miner_pools):
                         fan = int(l[1])
                     elif l[0] == 'FanR':
                         fan_pct = float(l[1])
-                    elif l[0] == 'Freq':
-                        frequency = float(l[1])
                     elif l[0] == 'DH':
                         hw_error_rate_pct = float(l[1])
                     elif l[0] == 'GHSmm':
                         hashrate_value = float(l[1])
+                    elif l[0] == 'TMax':
+                        temps.append(int(l[1]))
+                    elif l[0] == 'Temp':
+                        temps.append(int(l[1]))
+                    # Another way to read temperature from old
+                    # Avalon 7 series is by reading the PVT_T
+                    # field. But in the new series it seems this
+                    # was deprecated. So lets not look at it a all.
 
                 hashrate_value, hashrate_unit = update_unit_and_value(
                     hashrate_value, miner.model.hashrate_unit)
@@ -256,15 +256,11 @@ def make_miner_instance_avalon7(miner, miner_stats, miner_pools):
                         if re.match(r'MW\d+', l[0]):
                             asic_count += decode_mw(l[1])
 
-                for l in re.findall(r'PVT_T\[((?:\s*\d*-\d*\/\d*-\d*\/\d*)*)\]', i[j]):
-                    temps = pvt_t_decode(l)
-
                 result.append(miner_instance(worker=worker,
                                              working_chip_count=asic_count,
                                              defective_chip_count=expected_asic - asic_count,
                                              inactive_chip_count=0,
                                              expected_chip_count=expected_asic,
-                                             frequency=frequency,
                                              hashrate_value=hashrate_value,
                                              hashrate_unit=hashrate_unit,
                                              temps=temps,
@@ -358,8 +354,6 @@ class AvalonErrorCode(Enum):
 
 # Example:
 # 784 0 0 0
-
-
 def decode_echu(miner, current_hashrate, identifier, input):
     if type(current_hashrate) is not float:
         return ["INTERNAL_ERROR"]
@@ -398,23 +392,9 @@ def decode_echu(miner, current_hashrate, identifier, input):
 # MW will be something like:
 # 408 407 452 402 407 387 425 427 392 449 415 442 447 425 405 392 450 417 386 387 426 448
 # We just need to count the number of numbers.
-
-
 def decode_mw(input):
     nums = input.split(" ")
     return len(nums)
-
-
-def pvt_t_decode(input):
-    temps = []
-    for temp_block_str in input.split(" "):
-        for temp_tuple_str in re.findall(r'(\d*)-(\d*)\/(\d*)-(\d*)\/(\d*)', temp_block_str):
-            for temp_str in temp_tuple_str:
-                temps.append(int(temp_str))
-    temps.sort(reverse=True)
-    # Just get the top 4 temps.
-    return temps[0:min(4, len(temps))]
-
 
 def make_miner_instance_gekkoscience(miner, miner_stats, miner_pools, miner_summary):
     # Get worker name
@@ -436,7 +416,6 @@ def make_miner_instance_gekkoscience(miner, miner_stats, miner_pools, miner_summ
                            defective_chip_count=0,
                            inactive_chip_count=0,
                            expected_chip_count=int(miner.model.chips),
-                           frequency=200,
                            hashrate_value=hashrate_value,
                            hashrate_unit=hashrate_unit,
                            temps=[],
@@ -470,7 +449,6 @@ def make_miner_instance_r1_ltc(miner, miner_stats, miner_pools, miner_summary):
                            defective_chip_count=0,
                            inactive_chip_count=0,
                            expected_chip_count=int(miner.model.chips),
-                           frequency=100,
                            hashrate_value=hashrate_value,
                            hashrate_unit=hashrate_unit,
                            temps=[],
