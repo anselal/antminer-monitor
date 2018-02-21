@@ -11,6 +11,7 @@ models.append(MinerModel(model='D3', chips='60,60,60', temp_keys='temp2_', descr
 models.append(MinerModel(model='T9', chips='57,57,57', temp_keys='temp2_', description='Bitcoin Miner 12.5 TH/s'))
 models.append(MinerModel(model='A3', chips='60,60,60', temp_keys='temp2_', description='Siacoin Miner 815 GH/s'))
 models.append(MinerModel(model='L3', chips='36,36,36,36', temp_keys='temp2_', description='Litecoin Miner 250 MH/s'))
+models.append(MinerModel(model='R4', chips='63,63', temp_keys='temp2_', description='Bitcoin Miner 8 TH/s'))
 settings = []
 settings.append(Settings(name="temperature_alert", value="80", description=""))
 settings.append(Settings(name="email_alert", value="True", description="Whether to send an email on alert"))
