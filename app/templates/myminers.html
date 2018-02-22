@@ -176,7 +176,7 @@
 
             , currency: "litecoin"
             , counter: "hide"
-            , alignment: "ac"
+            , alignment: "ar"
             , qrcode: true
             , auto_show: false
             , lbl_button: "Donate"
@@ -198,6 +198,21 @@
             , lbl_address: "Donate Dash to this Address:"
             , lbl_count: "donations"
             , lbl_amount: "DASH"
+        });
+        CoinWidgetCom.go({
+
+            /* make sure you update the wallet_address or you will not get your donations */
+            wallet_address: "0x5bD8813Da5148fbc841bB18b9411fF72EdC8e10a"
+
+            , currency: "ethereum"
+            , counter: "hide"
+            , alignment: "al"
+            , qrcode: true
+            , auto_show: false
+            , lbl_button: "Donate"
+            , lbl_address: "Donate Ethereum to this Address:"
+            , lbl_count: "donations"
+            , lbl_amount: "ETHEREUM"
         });
         (function countdown(remaining) {
             if(remaining === 0)
