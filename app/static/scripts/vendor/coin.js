@@ -37,7 +37,7 @@ var CoinWidgetComCounter = 0;
 
 if (typeof CoinWidgetCom != 'object')
 var CoinWidgetCom = {
-	source: '/static/coinwidget/'
+	source: '/static/images/'
 	, config: []
 	, go :function(config) {
 		config = CoinWidgetCom.validate(config);
@@ -311,7 +311,7 @@ var CoinWidgetCom = {
 					id 		: 'COINWIDGETCOM_STYLESHEET'
 					, rel 	: 'stylesheet'
 					, type 	: 'text/css'
-					, href 	: CoinWidgetCom.source+'coin.css'
+					, href 	: '/static/styles/vendor/coin.css'
 				});
 			}
 		}
