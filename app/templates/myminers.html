@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Antminer Monitor {{ version }}</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css')}}">
-    <script src="/static/coinwidget/coin.js"></script>
 </head>
 <body>
 <h2>Antminer Monitor {{ version }}</h2>
@@ -153,76 +152,9 @@
         data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
 <i>Generated in {{ loading_time }} seconds. Source code <a target="_blank"
                                                            href="https://github.com/anselal/antminer-monitor">here</a>.
-    <script>
-        CoinWidgetCom.go({
-
-            /* make sure you update the wallet_address or you will not get your donations */
-            wallet_address: "1HYCBovF6mqqKMyG4m2DQxXpdKmogK4Wuw"
-
-            , currency: "bitcoin"
-            , counter: "hide"
-            , alignment: "br"
-            , qrcode: true
-            , auto_show: false
-            , lbl_button: "Donate"
-            , lbl_address: "Donate Bitcoin to this Address:"
-            , lbl_count: "donations"
-            , lbl_amount: "BTC"
-        });
-        CoinWidgetCom.go({
-
-            /* make sure you update the wallet_address or you will not get your donations */
-            wallet_address: "LLrjq6nRokS74yPMspitHkXv4nLtEyebNW"
-
-            , currency: "litecoin"
-            , counter: "hide"
-            , alignment: "ar"
-            , qrcode: true
-            , auto_show: false
-            , lbl_button: "Donate"
-            , lbl_address: "Donate Litecoin to this Address:"
-            , lbl_count: "donations"
-            , lbl_amount: "LTC"
-        });
-        CoinWidgetCom.go({
-
-            /* make sure you update the wallet_address or you will not get your donations */
-            wallet_address: "XuEnZtsCmWcDwKVe82wQddsfwUifXyeRoQ"
-
-            , currency: "dash"
-            , counter: "hide"
-            , alignment: "bl"
-            , qrcode: true
-            , auto_show: false
-            , lbl_button: "Donate"
-            , lbl_address: "Donate Dash to this Address:"
-            , lbl_count: "donations"
-            , lbl_amount: "DASH"
-        });
-        CoinWidgetCom.go({
-
-            /* make sure you update the wallet_address or you will not get your donations */
-            wallet_address: "0x5bD8813Da5148fbc841bB18b9411fF72EdC8e10a"
-
-            , currency: "ethereum"
-            , counter: "hide"
-            , alignment: "al"
-            , qrcode: true
-            , auto_show: false
-            , lbl_button: "Donate"
-            , lbl_address: "Donate Ethereum to this Address:"
-            , lbl_count: "donations"
-            , lbl_amount: "ETHEREUM"
-        });
-        (function countdown(remaining) {
-            if(remaining === 0)
-                location.reload(true);
-            else {
-                document.getElementById('countdown').innerHTML = 'Refresh in: ' + remaining + ' sec';
-                setTimeout(function(){ countdown(remaining - 1); }, 1000);
-            }
-        })(120);
-    </script>
+    <script src="{{ url_for('static', filename='coinwidget/coin.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/donate.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <!-- https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=dash:XiXwTjyN8DAsQaRh2pcFVyVSbXvk6Ph6ro?amount=0.001-->
 </body>
 </html>
