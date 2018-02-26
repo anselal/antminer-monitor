@@ -15,8 +15,8 @@
                 <th>HW Error Rate %</th>
                 <th>Uptime</th>
                 <th>Status</th>
-                <th>JSON Info</th>
                 {%- if is_request %}
+                <th>JSON Info</th>
                 <th>Restart</th>
                 <th>Remove</th>
                 {%- endif %}
@@ -39,12 +39,12 @@
                 <td>{{ miner_instance.uptime }}</td>
                 <td title="{%- if miner_instance.errors %}{{ miner_instance.errors }}{%- endif %}">
                     {%- if miner_instance.errors %}{{ miner_instance.errors }}{%- else %}OK{%- endif %}</td>
+                {%- if is_request %}
                 <td>
                     <a target="_blank" href={{ url_for_ex('summary', ip=miner_instance.miner.ip) }}>Summary</a> |
                     <a target="_blank" href="{{ url_for_ex('pools', ip=miner_instance.miner.ip) }}">Pools</a> |
                     <a target="_blank" href="{{ url_for_ex('stats', ip=miner_instance.miner.ip) }}">Stats</a>
                 </td>
-                {%- if is_request %}
                 <td>
                     <a href="#" onclick="onRestart('{{ url_for_ex( 'restart_miner', id=miner_instance.miner.id) }}')">
                         <img src="static/images/assets/restart.png"></img>

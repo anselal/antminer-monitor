@@ -9,34 +9,38 @@
 
 <body>
     <h2>Miner Monitor {{ version }}</h2>
-    <fieldset class="top" name="add" style="width: 300px;">
-        <legend>Add Miner</legend>
-        <form action="{{ url_for_ex('add_miner') }}" method="POST">
-            <p>
-                <label for="ip">IP Address: </label>
-                <input required type="text" name="ip">
-            </p>
-            <p>
-                <label for="remarks">Remarks: </label>
-                <input type="text" name="remarks">
-            </p>
-            <p>
-                <input type="submit" value="Add model">
-            </p>
-        </form>
-    </fieldset>
-
-    <fieldset class="right top" name="total_hashrate" style="width: 300px; height:130px">
-        <legend>Total hashrate per model (5s)</legend>
-        <ul>
-            {%- for model in total_hash_rate_per_model|sort %}
-            <li>
-                <u>{{ model }}:</u>
-                <strong>{{ total_hash_rate_per_model[model] }}</strong>
-            </li>
-            {%- endfor %}
-        </ul>
-    </fieldset>
+    <div class="container">
+        <div>
+          <fieldset name="add">
+              <legend>Add Miner</legend>
+                <form action="{{ url_for_ex('add_miner') }}" method="POST">
+                  <div>
+                    <label for="ip">IP Address: </label>
+                    <input required type="text" name="ip">
+                  </div>
+                <div>
+                    <label for="remarks">Remarks: </label>
+                    <input type="text" name="remarks">
+                </div>
+                <div>
+                    <input type="submit" value="Add model">
+                </div>
+                </form>
+          </fieldset>
+        </div>
+        <div></div>
+        <div>
+            <fieldset name="total_hashrate" style="height:130px">
+                <legend>Total hashrate per model (5s)</legend>
+                <ul>
+                    {%- for model in total_hash_rate_per_model|sort %}
+                        <li><u>{{ model }}:</u> <strong>{{ total_hash_rate_per_model[model] }}</strong>
+                        </li>
+                    {%- endfor %}
+                </ul>
+            </fieldset>
+        </div>
+    </div>
 
     <br>
     {%- with messages = get_flashed_messages(category_filter=['error', 'info', 'warning'], with_categories=true) %}
@@ -48,7 +52,7 @@
     <br>
 
     {% include "active_miners.html" %}
-    {%- with messages = get_flashed_messages(category_filter=['verbose'], with_categories=true) %}
+    {%- with messages = get_flashed_messages(category_filter=['debug'], with_categories=true) %}
     {% include "messages.html" %}
     {%- endwith %}
     <br>

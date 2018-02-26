@@ -7,6 +7,7 @@ class Miner(db.Model):
     model_id = db.Column(db.Integer, db.ForeignKey('miner_model.id'), nullable=False)
     model = db.relationship("MinerModel", backref="miners")
     remarks = db.Column(db.String(255), nullable=True)
+    count = db.Column(db.Integer, nullable=False)
 
     def __repr__(self):
         return "Miner(ip='{}', model='{}', remarks='{}')".format(self.ip, self.model, self.remarks)

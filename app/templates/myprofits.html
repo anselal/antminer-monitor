@@ -28,29 +28,35 @@
         {% endfor %}
     {% endif %}
     {%- endwith %}
-    <fieldset class="top" name="add" style="width: 300px;">
-        <legend>Add Miner</legend>
-        <form action="{{ url_for_ex('profits') }}" method="POST">
-            <p>
-                <label for="usd_per_kwh">USD per Kwh: </label>
-                <input required type="text" name="usd_per_kwh" value="{{ usd_per_kwh }}">
-            </p>
-            <p>
-                <input type="submit" value="Refresh">
-            </p>
-        </form>
-    </fieldset>
-    <fieldset class="right top" name="total_coins" style="width: 300px; height:130px">
-            <legend>Total coins/day</legend>
-            <ul>
-                {%- for coin in data['total_coins']|sort %}
-                <li>
-                    <u>{{ coin }}:</u>
-                    <strong>{{ data['total_coins'][coin] }}</strong>
-                </li>
-                {%- endfor %}
-            </ul>
-        </fieldset>
+    <div class="container">
+        <div>
+          <fieldset name="settings">
+              <legend>Settings</legend>
+                <form action="{{ url_for_ex('profits') }}" method="POST">
+                <div>
+                    <label for="usd_per_kwh">USD per Kwh: </label>
+                    <input required type="text" name="usd_per_kwh" value="{{ usd_per_kwh }}">
+                </div>
+                <div>
+                    <input type="submit" value="Refresh">
+                </div>
+                </form>
+          </fieldset>
+        </div>
+        <div>
+            <fieldset name="coins" style="height:130px">
+                <legend>Total coins day/month/year</legend>
+                <ul>
+                    {%- for coin in data['total_coins']|sort %}
+                    <li>
+                        <u>{{ coin }}:</u>
+                        <strong>{{ data['total_coins'][coin] }} / {{ 30*data['total_coins'][coin] }} / {{ 365 * data['total_coins'][coin] }}</strong>
+                    </li>
+                    {%- endfor %}
+                </ul>
+            </fieldset>
+        </div>
+    </div>
 
     <br>
     <fieldset name="miner_profits">

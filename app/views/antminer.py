@@ -1,39 +1,34 @@
-from flask import (jsonify,
-                   render_template,
-                   request,
-                   redirect,
-                   url_for,
-                   flash,
-                   abort,
-                   Response,
-                   )
+import json
+import threading
+import time
+from functools import wraps
+
+import jinja2
+import requests
+from flask import (Response, abort, flash, jsonify, redirect, render_template,
+                   request, url_for)
 from flask.views import MethodView
 from sqlalchemy.exc import IntegrityError
-from app import app, db, logger, __version__, last_run_time, last_status_is_ok, AGENT_INTERVAL_SECS
-from app.models import Miner, MinerModel, Settings
-from app.views.antminer_json import (get_summary,
-                                     get_pools,
-                                     get_stats,
-                                     )
-from app.pycgminer.pycgminer import CgminerAPI
 
-import time
-import threading
 import config
-from functools import wraps
-import jinja2
-import json
-import requests
-from miner_adapter import detect_model, get_miner_instance, update_unit_and_value
+from app import (AGENT_INTERVAL_SECS, __version__, app, db, last_run_time,
+                 last_status_is_ok, logger)
+from app.models import Miner, MinerModel, Settings
+from app.pycgminer.pycgminer import CgminerAPI
+from app.views.antminer_json import get_pools, get_stats, get_summary
 from mail_sender import send_email
+from miner_adapter import detect_model, get_miner_status, update_unit_and_value
 from miners_profit import get_miners_profit
+
 
 def check_auth(username, password):
     """This function is called to check if a username /
     password combination is valid.
     """
-    return (config.BASIC_AUTH_USER is None or
-        (username == config.BASIC_AUTH_USER and password == config.BASIC_AUTH_PWD))
+    return (username == config.BASIC_AUTH_USER and password == config.BASIC_AUTH_PWD)
+
+def auth_enabled():
+    return not config.BASIC_AUTH_USER is None
 
 
 def authenticate():
@@ -47,9 +42,10 @@ def authenticate():
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not check_auth(auth.username, auth.password):
-            return authenticate()
+        if auth_enabled():
+            auth = request.authorization
+            if not auth or not check_auth(auth.username, auth.password):
+                return authenticate()
         return f(*args, **kwargs)
     return decorated
 
@@ -67,14 +63,14 @@ def miners():
     errors = False
 
     for miner in miners:
-        miner_instance_list = get_miner_instance(miner)
+        miner_status = get_miner_status(miner)
 
         # if miner not accessible
-        if not miner_instance_list:
+        if not miner_status:
             errors = True
             inactive_miners.append(miner)
         else:
-            for miner_instance in miner_instance_list:
+            for miner_instance in miner_status.miner_instance_list:
                 if not miner.model.model in total_hash_rate_per_model.keys():
                     total_hash_rate_per_model[miner.model.model] = {
                         "value": 0, "unit": "<EMPTY>"}
@@ -83,17 +79,17 @@ def miners():
                 total_hash_rate_per_model[miner.model.model]["unit"] = miner_instance.hashrate_unit
                 active_miner_instances.append(miner_instance)
 
-                # Log warnings
-                for message in miner_instance.verboses:
-                    flash(message, "verbose")
-                for message in miner_instance.warnings:
-                    logger.warning(message)
-                    flash(message, "warning")
-                    errors = True
-                for message in miner_instance.errors:
-                    logger.warning(message)
-                    flash(message, "error")
-                    errors = True
+            # Log warnings
+            for message in miner_status.debugs:
+                flash(message, "debug")
+            for message in miner_status.warnings:
+                logger.warning(message)
+                flash(message, "warning")
+                errors = True
+            for message in miner_status.errors:
+                logger.warning(message)
+                flash(message, "error")
+                errors = True
 
     # Flash success/info message
     if not miners:
@@ -166,6 +162,7 @@ def restart_miner(id):
     miner = Miner.query.filter_by(id=int(id)).first()
     cgminer = CgminerAPI(host=miner.ip)
     output = cgminer.restart()
+    logger.info("Restarted miner: {}".format(str(output)))
     return redirect(url_for('miners'))
 
 
@@ -193,8 +190,8 @@ def stats(ip):
 @app.route('/profits', methods=['GET', 'POST'])
 @requires_auth
 def profits():
-    usd_per_kwh = float(request.form.get('usd_per_kwh', 0.11))
     # Init variables
+    usd_per_kwh = float(request.form.get('usd_per_kwh', 0.11))
     start = time.clock()
     miners_profit = get_miners_profit(usd_per_kwh)
     loading_time = time.clock() - start
@@ -228,20 +225,20 @@ def render_without_request(template_name, **template_vars):
     template = env.get_template(template_name)
     return template.render(**template_vars)
 
-def attempt_http_connect(miners, timeout):
-    failure = []
+def try_http_connect(miners, timeout):
+    failed_miners = []
     logger.info("Attempting to connect to all miners through HTTP")
     for miner in miners: 
         try:
             url = "http://{}".format(miner.ip)
             r = requests.get(url, timeout=timeout)
             if r.status_code >= 500:
-                failure.append(miner)
+                failed_miners.append(miner)
         except Exception as e:
             logger.error(e)
-            failure.append(miner)
+            failed_miners.append(miner)
 
-    return failure
+    return failed_miners
 
 @app.before_first_request
 def activate_job():
@@ -260,7 +257,7 @@ def activate_job():
                 # Light check (HTTP connect)
                 if last_run_time != 0 and time.time() - lightweight_last_run_time >= lightweight_interval_secs:
                     miners = Miner.query.all()
-                    inactive_miners = attempt_http_connect(miners=miners,timeout=5)
+                    inactive_miners = try_http_connect(miners=miners,timeout=5)
                     if inactive_miners:
                         messages.append(('error', "Some servers cannot be contacted through HTTP connect"))
                         break
@@ -271,21 +268,24 @@ def activate_job():
                     logger.info("CGMiner API checks in progress...")
                     miners = Miner.query.all()
                     for miner in miners:
-                        miner_instance_list = get_miner_instance(miner)
-                        if not miner_instance_list:
+                        miner_status = get_miner_status(miner)
+                        if not miner_status:
                             inactive_miners.append(miner)
                             messages.append(
                                 ('error', "[ERROR] {} not accessible".format(miner.ip)))
                         else:
-                            for miner_instance in miner_instance_list:
-                                for error in miner_instance.errors:
-                                    messages.append(('error', error))
-                                for warning in miner_instance.warnings:
-                                    messages.append(('warning', warning))
+                            for miner_instance in miner_status.miner_instance_list:
                                 active_miner_instances.append(miner_instance)
+                            for error in miner_status.errors:
+                                messages.append(('error', error))
+                            for warning in miner_status.warnings:
+                                messages.append(('warning', warning))
 
-                    last_status_is_ok = len(messages) == 0
+                    # Update last run time.
                     lightweight_last_run_time = last_run_time = time.time()
+
+                    # Update status
+                    last_status_is_ok = len(messages) == 0
                     if not last_status_is_ok:
                         body_html = (render_without_request("inactive_miners.html", inactive_miners=inactive_miners) +
                             render_without_request("active_miners.html", active_miner_instances=active_miner_instances) +
@@ -293,7 +293,7 @@ def activate_job():
                         body_plain = "Error founds while monitoring. Please go to {}\n".format(
                             config.DOMAIN_ADDR)
                         send_email(config.GMAIL_USER, config.GMAIL_PWD,
-                                config.EMAIL_TO, "Antmonitor Alert", body_html, body_plain)
+                                config.EMAIL_TO, "Monitor Alert", body_html, body_plain)
             except Exception as e:
                 logger.error(e)
             time.sleep(lightweight_interval_secs)

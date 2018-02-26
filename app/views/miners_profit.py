@@ -2,7 +2,7 @@ import requests
 import json
 import re
 from enum import Enum
-from miner_adapter import get_miner_instance, update_unit_and_value
+from miner_adapter import get_miner_status, update_unit_and_value, ModelType
 from app.models import Miner, MinerModel
 from cached_http_request import CachedHttpRequest
 
@@ -120,11 +120,11 @@ class MinerProfit(object):
 
 def get_coin_from_model(model_str):
     # TODO: For now hardcoding the coin for a given model.
-    if model_str == "AV741" or model_str == "AV821" or model_str == "S9" or model_str == "GekkoScience":
+    if model_str == ModelType.Avalon741.value or model_str == ModelType.Avalon821.value or model_str == ModelType.S9.value or model_str == ModelType.GekkoScience.value:
         return Coin.Bitcoin
-    elif model_str == "D3":
+    elif model_str == ModelType.D3.value:
         return Coin.Dash
-    elif model_str == "L3+" or model_str == "R1-LTC":
+    elif model_str == ModelType.L3Plus.value or model_str == ModelType.AntRouterR1LTC.value:
         return Coin.Litecoin
     else:
         assert False, "Unsupported model {}".format(model_str)
@@ -140,11 +140,11 @@ def get_miners_profit(usd_per_kwh):
     cached_http_request = CachedHttpRequest(entry_expiration_secs=60)
 
     for miner in miners:
-        miner_instance_list = get_miner_instance(miner)
-        for miner_instance in miner_instance_list:
+        miner_status = get_miner_status(miner)
+        for miner_instance in miner_status.miner_instance_list:
             coin = get_coin_from_model(miner_instance.miner.model.model)
-            mi = MiningInfo(coin, miner_instance.hashrate_value,
-                            miner_instance.hashrate_unit, miner_instance.miner.model.watts, usd_per_kwh, cached_http_request)
+            mi = MiningInfo(coin, miner_instance.miner.model.hashrate_value,
+                            miner_instance.miner.model.hashrate_unit, miner_instance.miner.model.watts, usd_per_kwh, cached_http_request)
             data = mi.fetch()
             if not data is None:
                 mp = MinerProfit(miner_instance=miner_instance, data=data)
