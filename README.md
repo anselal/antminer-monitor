@@ -62,7 +62,7 @@ $ python create_db.py
 ### Run the app
  (Mac users don't forget `sudo`)
 ```sh
-$ python run.py
+$ python manager.py runserver
 ```
 
 Fire up a browser and point it to `http://localhost:5000` if you are running the app on the same machine OR `http://<ip>:5000` if you are accesing the app from another machine on the same network, by replacing `<ip>` with the machine's ip running AntminerMonitor.
