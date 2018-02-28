@@ -5,14 +5,14 @@ from flask import (jsonify,
                    url_for,
                    flash,
                    )
-from app.lib.pycgminer import (get_summary,
+from lib.pycgminer import (get_summary,
                                get_pools,
                                get_stats,
                                )
+from lib.util_hashrate import update_unit_and_value
 from sqlalchemy.exc import IntegrityError
 from app import app, db, logger, __version__
 from app.models import Miner, MinerModel, Settings
-from app.lib.util_hashrate import update_unit_and_value
 import re
 from datetime import timedelta
 import time

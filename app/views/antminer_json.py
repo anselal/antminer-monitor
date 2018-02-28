@@ -1,6 +1,6 @@
 from flask import jsonify
 from app import app
-from app.lib.pycgminer import (get_summary,
+from lib.pycgminer import (get_summary,
                                get_pools,
                                get_stats,
                                )
