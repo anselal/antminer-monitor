@@ -18,6 +18,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 manager = Manager(app)
 server = Server(host='0.0.0.0', port=5000)
+manager.add_command('runserver', server)
 
 gunicorn_error_logger = logging.getLogger('gunicorn.error')
 app.logger.handlers.extend(gunicorn_error_logger.handlers)
