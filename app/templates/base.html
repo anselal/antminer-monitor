@@ -1,0 +1,64 @@
+{# import 'admin/layout.html' as layout with context -#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head_meta -%}
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="{% block meta_description %}{% endblock %}">
+    <meta name="author" content="Anastasios Selalmazidis">
+    {% endblock head_meta -%}
+    <title>{% block title -%}{% endblock title %}</title>
+    {% block head_css -%}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/main.css') }}" />
+    {% endblock head_css -%}
+    {% block head -%}
+    {% endblock head -%}
+    {% block head_tail -%}
+    {% endblock head_tail -%}
+</head>
+<body>
+    {% block page_body -%}
+    <div id="container">
+
+        {% block messages -%}
+
+        {% endblock messages -%}
+
+
+        {% block body -%}{% endblock body -%}
+    </div>
+    {% endblock page_body -%}
+
+
+
+    {% block tail_js -%}
+    <script src="{{ url_for('static', filename='scripts/vendor/coin.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+    {% endblock tail_js -%}
+
+    {% block tail -%}
+    <div id="footer">
+        {% block footer -%}
+        </br>
+        <!-- Fork me on GitHub-->
+        <a target="_blank" href="https://github.com/anselal/antminer-monitor">
+        <img style="position: absolute; top: 0; right: 0; border: 0;"
+        src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67"
+        alt="Fork me on GitHub"
+        data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
+        <center>
+        <i>Generated in {{ loading_time }} seconds</br></br>
+        <script src="{{ url_for('static', filename='scripts/donate.js') }}"></script></br></br>
+        &copy; Copyright 2017-2018 by <a href="https://soulis.tech">Anastasios Selalmazidis</a>.
+        Source code <a target="_blank"
+            href="https://github.com/anselal/antminer-monitor">here</a></br></br>
+        </center>
+        {% endblock footer -%}
+    </div>
+    {% endblock tail -%}
+
+</body>
+</html>
