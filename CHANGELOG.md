@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## [v0.4.0] - 2018-02-28
+
+### Bug fixes
+- :bug: fix(backend): Miner temperatures returned as 'NULL'. Closes #74
+
+### New Features
+- :up: update(create_db): Add support for Antminer R4. Closes #66
+- :up: update(create_db): Add support for V9
+- :up: update(requirements,app): Add Flask-Migrate
+- :up: update(requirements,app): Add manager.py script
+
+### Added
+- :up: update(css): Add generic default font-family
+- :up: update(donations): Add Ethereum widget
+
+### Changed
+- :shirt: refactor(css): Add grid layout
+- :up: update(css): Change body width to 90%
+- :up: update(debug): Update debug flash messages
+- :shirt: refactor(code): Move helper functions to the lib folder
+- :heavy_plus_sign: :shirt: refactor(js): Move scripts to separate files
+- :shirt: refactor(static): Organize static files
+- :shirt: refactor(templates): Split main template into layout and base
+- :pencil: docs(run): Update run command
+
 ## [v0.3.0] - 2018-01-28
 ### Bug fixes
 - :bug: fix(table): Fix remove icon not showing
@@ -88,7 +113,8 @@ Updated supported miner models, requirements and installation instructions. Adde
 - :star: Get in-app notifications about miner errors (needs refresh)
 - :star: Log errors to file
 
-[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.4.0...HEAD
+[v0.4.0]: https://github.com/anselal/antminer-monitor/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/anselal/antminer-monitor/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/anselal/antminer-monitor/compare/v0.1.1...v0.2.0
 [v0.1.1]: https://github.com/anselal/antminer-monitor/compare/v0.1.0...v0.1.1

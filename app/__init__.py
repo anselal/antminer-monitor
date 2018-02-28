@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 import logging
 import os
 
-__version__ = "v0.3.0"
+__version__ = "v0.4.0"
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super secret key'
