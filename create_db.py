@@ -19,8 +19,8 @@ try:
         db.session.add(model)
         db.session.commit()
 except IntegrityError:
-    print("Database already exists.")
+    print("[INFO] Database already exists.")
 else:
-    print("Database successfully created.")
+    print("[INFO] Database successfully created.")
 
 

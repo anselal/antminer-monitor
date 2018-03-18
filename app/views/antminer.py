@@ -123,6 +123,36 @@ def miners():
                            is_request=True)
 
 
+def detect_model(ip):
+    stats = get_stats(ip)
+
+    # Check for connectivity error.
+    if stats['STATUS'][0]['STATUS'] == 'error':
+        flash("[ERROR] Error while connecting to miner at ip address '{}'.".format(
+            ip), "error")
+        return None
+
+    # Try identifying the device.
+    model_name = None
+    if 'Type' in stats['STATS'][0]:
+        models = re.findall(r'Antminer (\w*\+?)', stats['STATS'][0]['Type'])
+        if len(models) == 1:
+            model_name = models[0]
+    elif 'ID' in stats['STATS'][0]:
+        # ID are used for devices like Avalon.
+        model_name = stats['STATS'][0]['ID']
+
+    if not model_name is None:
+        model = MinerModel.query.filter_by(model=model_name).first()
+        if not model is None:
+            return model
+    else:
+        model_name = "Unknown"
+
+    flash("[ERROR] Miner type '{}' at ip address '{}' is not supported.".format(
+        model_name, ip), "error")
+    return None
+
 @app.route('/add', methods=['POST'])
 @requires_auth
 def add_miner():

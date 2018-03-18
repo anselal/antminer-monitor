@@ -30,6 +30,7 @@ class CgminerAPI(object):
                 sock.send(json.dumps(payload))
             if sys.version_info.major == 3:
                 sock.send(bytes(json.dumps(payload), 'utf-8'))
+                sock.send(bytes(json.dumps(payload),'utf-8'))
             received = self._receive(sock)
         except Exception as e:
             return dict({'STATUS': [{'STATUS': 'error', 'description': e}]})
