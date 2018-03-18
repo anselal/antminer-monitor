@@ -56,11 +56,11 @@
     {% include "messages.html" %}
     {%- endwith %}
     <br>
-    <i>Generated in {{ loading_time }} seconds.</i>
+    <i>Generated in {{ loading_time }} seconds at {{ generated_time }}.</i>
         <script>
             // Confirm dialog for restart
-            function onRestart(restart_url) {
-                if (window.confirm("Are you want you want to restart miner?")) {
+            function onRestart(restart_url, ip) {
+                if (window.confirm("Are you want you want to restart miner " + ip + "?")) {
                     this.document.location.href = restart_url;
                 }
             }

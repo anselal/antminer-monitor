@@ -64,13 +64,13 @@
         <table style="width:100%">
             <tr>
                 <th>Model</th>
-                <th>Hashrate</th>
-                <th>Watts</th>
                 <th>Coin</th>
                 <th>Network hashrate</th>
                 <th>Number of devices</th>
                 <th>Revenue / Day</th>
+                <th>Revenue / Year</th>
                 <th>Cost / Day</th>
+                <th>Watts</th>
                 <th>Break even price</th>
                 <th>Current Price</th>
                 <th>Daily return</th>
@@ -78,13 +78,13 @@
             {%- for miner in data['profits'] %}
             <tr{%- if miner.errors %} class="error" {%- endif %}>
                 <td>{{ miner.miner_instance.miner.model.model }}</td>
-                <td>{{ miner.miner_instance.hashrate_pretty() }}</td>
-                <td>{{ miner.miner_instance.miner.model.watts }}</td>
                 <td>{{ miner.data['coin'].name }} </td>
                 <td>{{ miner.data['network_hash_value'] }} {{ miner.data['network_hash_unit'] }}</td>
                 <td>{{ miner.number_of_devices() }}</td>
                 <td>${{ miner.data['revenue_per_day'] }}</td>
+                <td>${{ miner.data['revenue_per_year'] }}</td>
                 <td>${{ miner.data['cost_per_day'] }}</td>
+                <td>{{ miner.miner_instance.miner.model.watts }}</td>
                 <td>${{ miner.data['break_even_price'] }}</td>
                 <td>${{ miner.data['current_price'] }}</td>
                 <td>{{ miner.data['daily_return_in_coin'] }}</td>

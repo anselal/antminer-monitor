@@ -46,6 +46,15 @@ class MinersStatus(object):
                 miner.ip)
             self.warnings.add(error_message)
 
+        # Target hashrate will be 80% of the model advertised hashrate. Most of the times
+        # the hashrate will be higher, so 80% should just be hit if the device
+        # is either starting or malfunctioning.
+        # TODO: This potentially have a bug because I am not converting the hash units.
+        target_hashrate = int(miner.model.hashrate_value * 0.8)
+        if hashrate_value < target_hashrate:
+            self.errors.add("[ERROR] Hashrate {:3.2f}{} is much smaller than the target {:3.2f}{} on {}".format(hashrate_value, hashrate_unit, target_hashrate, miner.model.hashrate_unit, miner.ip))
+
+
         self.miner_instance_list.append(miner_instance(worker,
                            working_chip_count,
                            defective_chip_count,
@@ -87,13 +96,13 @@ def detect_model(ip):
         # ID are used for devices like Avalon.
         model_name = stats['STATS'][0]['ID']
         if model_name == "AV70":
-            model_name = ModelType.Avalon741
+            model_name = ModelType.Avalon741.value
         elif model_name == "AV80":
-            model_name = ModelType.Avalon821
+            model_name = ModelType.Avalon821.value
         elif model_name == "GSD0":
-            model_name = ModelType.GekkoScience
+            model_name = ModelType.GekkoScience.value
         elif model_name == "ANTR10":
-            model_name = ModelType.AntRouterR1LTC
+            model_name = ModelType.AntRouterR1LTC.value
 
     if not model_name is None:
         model = MinerModel.query.filter_by(model=model_name).first()
@@ -123,9 +132,8 @@ def get_miner_status(miner):
         make_miner_instance_bitmain(status, miner, miner_stats, get_pools(miner.ip))
 
     # Check if the count.
-    if miner.count > len(status.miner_instance_list):
-        status.errors.add("Expected {} miners in ip {}. Found {}".format(miner.count, miner.ip, len(status.miner_instance_list)))
-
+    if status.miner_instance_list and miner.count > len(status.miner_instance_list):
+         status.errors.add("Expected {} miners in ip {}. Found {}".format(miner.count, miner.ip, len(status.miner_instance_list)))
     return status
 
 
@@ -388,12 +396,6 @@ def decode_echu(status, miner, current_hashrate, identifier, input):
         status.errors.add("INTERNAL ERROR")
         return
 
-    # Target hashrate will be 80% of the model advertised hashrate
-    # This is because some error codes are ignorable if the hashrate
-    # is not too bad. They don't define what too bad means, so we arbitrarily
-    # define as 80%.
-    target_hashrate = int(miner.model.hashrate_value * 0.80)
-
     actual_codes = input.split(" ")
     # Lets decode each given code.
     for actual_code in actual_codes:
@@ -403,12 +405,8 @@ def decode_echu(status, miner, current_hashrate, identifier, input):
             if (code.value & actual_code) <> 0:
                 # Acording to doc there are some erros that are ignorable.
                 if code.get_error_type() == AvalonErrorType.IGNORABLE:
-                    if current_hashrate >= target_hashrate:
-                        status.debugs.add(code.get_error_message(
-                            miner.ip, identifier))
-                    else:
-                        status.warnings.add(
-                            code.get_error_message(miner.ip, identifier))
+                    status.debugs.add(code.get_error_message(
+                        miner.ip, identifier))
                 elif code.get_error_type() == AvalonErrorType.WARNING:
                     status.warnings.add(
                         code.get_error_message(miner.ip, identifier))
@@ -450,9 +448,6 @@ def make_miner_instance_gekkoscience(status, miner, miner_stats, miner_pools, mi
                            fan_pct=None,
                            hw_error_rate_pct=hw_error_rate,
                            uptime_secs=uptime,
-                           debugs=[],
-                           warnings=[],
-                           errors=[],
                            miner=miner)
 
 
@@ -483,7 +478,4 @@ def make_miner_instance_r1_ltc(status, miner, miner_stats, miner_pools, miner_su
                            fan_pct=None,
                            hw_error_rate_pct=hw_error_rate,
                            uptime_secs=uptime,
-                           debugs=[],
-                           warnings=[],
-                           errors=[],
                            miner=miner)

@@ -1,7 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
+from app import logger
 import config
 
 
@@ -17,12 +17,15 @@ def send_email(gmail_user, gmail_pwd, to_email, subject, body_html, body_plain):
 
     # Send actual message
     try:
+        logger.debug("Sending email...")
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.ehlo()
         server.starttls()
         server.login(gmail_user, gmail_pwd)
         server.sendmail(from_email, to_email, msg.as_string())
         server.close()
-        print ("successfully sent the mail")
+        logger.debug ("Successfully sent the mail")
+        return True
     except Exception as e:
-        print ("failed to send mail " + str(e))
+        logger.error ("Failed to send mail " + str(e))
+        return False

@@ -46,7 +46,7 @@
                     <a target="_blank" href="{{ url_for_ex('stats', ip=miner_instance.miner.ip) }}">Stats</a>
                 </td>
                 <td>
-                    <a href="#" onclick="onRestart('{{ url_for_ex( 'restart_miner', id=miner_instance.miner.id) }}')">
+                    <a href="#" onclick="onRestart('{{ url_for_ex( 'restart_miner', id=miner_instance.miner.id) }}', '{{miner_instance.miner.ip}}')">
                         <img src="static/images/assets/restart.png"></img>
                     </a>
                 </td>

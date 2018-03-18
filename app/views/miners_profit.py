@@ -6,6 +6,8 @@ from miner_adapter import get_miner_status, update_unit_and_value, ModelType
 from app.models import Miner, MinerModel
 from cached_http_request import CachedHttpRequest
 
+cached_http_request = CachedHttpRequest(entry_expiration_secs=60)
+
 class Coin(Enum):
     Bitcoin = 1,
     BitcoinCash = 2,
@@ -97,6 +99,7 @@ class MiningInfo(object):
                 'network_hash_value': network_hash_value,
                 'network_hash_unit': network_hash_unit,
                 'revenue_per_day': self.extract_dollar(data['revenue']),
+                'revenue_per_year': 365 * self.extract_dollar(data['revenue']),
                 'cost_per_day': cost_per_day,
                 'break_even_price': round(cost_per_day / daily_return_in_coins, 2),
                 'current_price': fetch_price_for_coin(self.cached_http_request, self.coin)
@@ -136,8 +139,8 @@ def get_miners_profit(usd_per_kwh):
     total_revenue = 0
     total_cost = 0
     total_coins = {}
-    # TODO: Potentially reuse this between requests.
-    cached_http_request = CachedHttpRequest(entry_expiration_secs=60)
+
+    global cached_http_request
 
     for miner in miners:
         miner_status = get_miner_status(miner)

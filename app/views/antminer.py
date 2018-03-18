@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 import config
 from app import (AGENT_INTERVAL_SECS, __version__, app, db, last_run_time,
                  last_status_is_ok, logger)
-from app.models import Miner, MinerModel, Settings
+from app.models import Miner, MinerModel, MinerEvent
 from app.pycgminer.pycgminer import CgminerAPI
 from app.views.antminer_json import get_pools, get_stats, get_summary
 from mail_sender import send_email
@@ -26,6 +26,7 @@ def check_auth(username, password):
     password combination is valid.
     """
     return (username == config.BASIC_AUTH_USER and password == config.BASIC_AUTH_PWD)
+
 
 def auth_enabled():
     return not config.BASIC_AUTH_USER is None
@@ -117,6 +118,8 @@ def miners():
                            inactive_miners=inactive_miners,
                            total_hash_rate_per_model=total_hash_rate_per_model_temp,
                            loading_time=loading_time,
+                           generated_time=time.strftime(
+                               "%d/%b %H:%M:%S", time.localtime()),
                            is_request=True)
 
 
@@ -129,19 +132,23 @@ def add_miner():
     try:
         model = detect_model(miner_ip)
     except Exception as e:
-        flash(e.message, "error")
+        logger.error(
+            "Error while detecting miner. message: {}".format(e.message))
+        flash(message=e.message, category="error")
 
     if not model is None:
         try:
             miner_remarks = request.form['remarks']
             miner = Miner(ip=miner_ip, model_id=model.id,
-                          remarks=miner_remarks)
+                          remarks=miner_remarks, count=1)
             db.session.add(miner)
             db.session.commit()
             flash("Miner with IP Address {} added successfully".format(
-                miner.ip), "success")
+                miner.ip), "info")
         except IntegrityError as e:
             db.session.rollback()
+            logger.error(
+                "Error while adding miner. Message: {}".format(e.message))
             flash("IP Address {} already added".format(miner_ip), "error")
 
     return redirect(url_for('miners'))
@@ -161,8 +168,11 @@ def delete_miner(id):
 def restart_miner(id):
     miner = Miner.query.filter_by(id=int(id)).first()
     cgminer = CgminerAPI(host=miner.ip)
-    output = cgminer.restart()
-    logger.info("Restarted miner: {}".format(str(output)))
+    status = cgminer.restart()
+    if status['STATUS'] == "RESTART":
+        flash("Miner {} restarted successfully".format(miner.ip), "warning")
+    else:
+        flash("Error while restarting {} - {}".format(miner.ip, json.dumps(status)))
     return redirect(url_for('miners'))
 
 
@@ -191,7 +201,7 @@ def stats(ip):
 @requires_auth
 def profits():
     # Init variables
-    usd_per_kwh = float(request.form.get('usd_per_kwh', 0.11))
+    usd_per_kwh = float(request.form.get('usd_per_kwh', 0.09))
     start = time.clock()
     miners_profit = get_miners_profit(usd_per_kwh)
     loading_time = time.clock() - start
@@ -208,10 +218,12 @@ def status():
     global last_run_time
     global last_status_is_ok
     global AGENT_INTERVAL_SECS
-    if time.time() - last_run_time >= AGENT_INTERVAL_SECS:
+    # Add 10s for slack.
+    if time.time() - last_run_time >= AGENT_INTERVAL_SECS + 10 or not last_status_is_ok:
         return abort(500)
     else:
         return jsonify({"last_run_time": last_run_time})
+
 
 def render_without_request(template_name, **template_vars):
     """
@@ -225,20 +237,33 @@ def render_without_request(template_name, **template_vars):
     template = env.get_template(template_name)
     return template.render(**template_vars)
 
+
 def try_http_connect(miners, timeout):
     failed_miners = []
-    logger.info("Attempting to connect to all miners through HTTP")
-    for miner in miners: 
+    for miner in miners:
         try:
             url = "http://{}".format(miner.ip)
             r = requests.get(url, timeout=timeout)
             if r.status_code >= 500:
                 failed_miners.append(miner)
         except Exception as e:
-            logger.error(e)
+            logger.warning("Error while connecting to {}".format(e.message))
             failed_miners.append(miner)
 
     return failed_miners
+
+
+def log_miner_event(miner, event_type, message):
+    try:
+        logger.debug("Miner:{} type:{} message:{}".format(miner.ip, event_type, message))
+        miner_event = MinerEvent(
+            miner_id=miner.id, event_type=event_type, message=message)
+        db.session.add(miner_event)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        logger.error("Error while logging event. Message:{}".format(e.message))
+
 
 @app.before_first_request
 def activate_job():
@@ -247,55 +272,71 @@ def activate_job():
         global last_status_is_ok
         global AGENT_INTERVAL_SECS
         lightweight_last_run_time = 0
-        lightweight_interval_secs = 15
+        lightweight_interval_secs = 5
+        last_email_message = None
         while True:
             try:
-                active_miner_instances = []
-                inactive_miners = []
                 messages = []
-
                 # Light check (HTTP connect)
+                miners = Miner.query.all()
                 if last_run_time != 0 and time.time() - lightweight_last_run_time >= lightweight_interval_secs:
-                    miners = Miner.query.all()
-                    inactive_miners = try_http_connect(miners=miners,timeout=5)
-                    if inactive_miners:
-                        messages.append(('error', "Some servers cannot be contacted through HTTP connect"))
-                        break
+                    logger.debug("Lightweight HTTP checks in progress...")
+                    inactive_miners = try_http_connect(
+                        miners=miners, timeout=5)
+                    for inactive_miner in inactive_miners:
+                        msg = "Miner {} not accessible".format(
+                            inactive_miner.ip)
+                        messages.append(("error", msg))
+                        log_miner_event(inactive_miner, "error", msg)
                     lightweight_last_run_time = time.time()
 
                 # Expensive check (CGMiner API)
-                if not messages and time.time() - last_run_time >= AGENT_INTERVAL_SECS:
+                active_miner_instances = []
+                if len(messages) == 0 and time.time() - last_run_time >= AGENT_INTERVAL_SECS:
                     logger.info("CGMiner API checks in progress...")
-                    miners = Miner.query.all()
                     for miner in miners:
                         miner_status = get_miner_status(miner)
                         if not miner_status:
-                            inactive_miners.append(miner)
+                            # Log event
                             messages.append(
-                                ('error', "[ERROR] {} not accessible".format(miner.ip)))
+                                ("error", "Miner {} not accessible".format(miner.ip)))
+                            log_miner_event(
+                                miner, "error", "Miner not accessible")
                         else:
                             for miner_instance in miner_status.miner_instance_list:
                                 active_miner_instances.append(miner_instance)
-                            for error in miner_status.errors:
-                                messages.append(('error', error))
-                            for warning in miner_status.warnings:
-                                messages.append(('warning', warning))
+                            for message in miner_status.errors:
+                                messages.append(("error", message))
+                                log_miner_event(miner, "error", message)
+                            for message in miner_status.warnings:
+                                messages.append(('warning', message))
+                                log_miner_event(miner, "error", message)
 
                     # Update last run time.
-                    lightweight_last_run_time = last_run_time = time.time()
+                    last_run_time = time.time()
 
-                    # Update status
-                    last_status_is_ok = len(messages) == 0
-                    if not last_status_is_ok:
-                        body_html = (render_without_request("inactive_miners.html", inactive_miners=inactive_miners) +
-                            render_without_request("active_miners.html", active_miner_instances=active_miner_instances) +
-                            render_without_request("messages.html", messages=messages))
-                        body_plain = "Error founds while monitoring. Please go to {}\n".format(
-                            config.DOMAIN_ADDR)
-                        send_email(config.GMAIL_USER, config.GMAIL_PWD,
-                                config.EMAIL_TO, "Monitor Alert", body_html, body_plain)
+                # Update status
+                last_status_is_ok = len(messages) == 0
+                if not last_status_is_ok:
+                    body_html = (render_without_request("active_miners.html", active_miner_instances=active_miner_instances) +
+                                 render_without_request("messages.html", messages=messages))
+                    body_plain = "Error founds while monitoring. Please go to {}\n".format(
+                        config.DOMAIN_ADDR)
+                    # Just send the error email if it changed
+                    if last_email_message <> body_html:
+                        for i in range(0, 10):
+                            if send_email(config.GMAIL_USER, config.GMAIL_PWD, config.EMAIL_TO, "Monitor Alert", body_html, body_plain):
+                                last_email_message = body_html
+                                break
+                            logger.warn(
+                                "Failure sending email, retrying... #{}".format(i))
+                    else:
+                        logger.debug("Email the same as previous... skipping...")
+                else:
+                    last_email_message = None
             except Exception as e:
-                logger.error(e)
+                logger.error("Error. Message:{}", e.message)
+                last_status_is_ok = False
             time.sleep(lightweight_interval_secs)
 
     thread = threading.Thread(target=run_job)
