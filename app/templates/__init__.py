@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import logging
 import os
 
-__version__ = "v0.3.0"
+__version__ = "v0.2.0"
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super secret key'
@@ -17,11 +17,11 @@ app.logger.setLevel(logging.DEBUG)
 
 # logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # create a file handler
 handler = logging.FileHandler(os.path.join(basedir, 'logs/antminer_monitor.log'), mode='a')  # mode 'a' is default
-handler.setLevel(logging.DEBUG)
+handler.setLevel(logging.INFO)
 
 # create a logging format
 formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s')
@@ -30,16 +30,15 @@ handler.setFormatter(formatter)
 # add handlers to the logger
 logger.addHandler(handler)
 
-# Helper function to deal with nginx
-def url_for_ex(endpoint, **values):
-    # Remove the leading slashes because its required if
-    # this is hosted behind a nginx server.
-    return remove_leading_slash(url_for(endpoint, **values))
 def remove_leading_slash(path):
   if path.startswith("/"):
     return path[1:]
   else:
     return path
+def url_for_ex(endpoint, **values):
+    # Remove the leading slashes because its required if
+    # this is hosted behind a nginx server.
+    return remove_leading_slash(url_for(endpoint, **values))
 app.jinja_env.globals.update(url_for_ex=url_for_ex)
 
 # Global variable for agent

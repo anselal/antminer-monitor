@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Miner Monitor {{ version }}</title>
+    <link rel="stylesheet" type="text/css" href="static/css/style.css">
+    <style>
+        .revenue {
+            color: green;
+        }
+        .cost {
+            color: red
+        }
+        </style>
+</head>
+
+<body>
+    <h2>Miner Monitor {{ version }}</h2>
+
+    <br>
+    {%- with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="{{ category }}">
+            <strong>{{ message }}</strong>
+            </div>
+        {% endfor %}
+    {% endif %}
+    {%- endwith %}
+    <div class="container">
+        <div>
+          <fieldset name="settings">
+              <legend>Settings</legend>
+                <form action="{{ url_for_ex('profits') }}" method="POST">
+                <div>
+                    <label for="usd_per_kwh">USD per Kwh: </label>
+                    <input required type="text" name="usd_per_kwh" value="{{ usd_per_kwh }}">
+                </div>
+                <div>
+                    <input type="submit" value="Refresh">
+                </div>
+                </form>
+          </fieldset>
+        </div>
+        <div>
+            <fieldset name="coins" style="height:130px">
+                <legend>Total coins day/month/year</legend>
+                <ul>
+                    {%- for coin in data['total_coins']|sort %}
+                    <li>
+                        <u>{{ coin }}:</u>
+                        <strong>{{ data['total_coins'][coin] }} / {{ 30*data['total_coins'][coin] }} / {{ 365 * data['total_coins'][coin] }}</strong>
+                    </li>
+                    {%- endfor %}
+                </ul>
+            </fieldset>
+        </div>
+    </div>
+
+    <br>
+    <fieldset name="miner_profits">
+        <legend>Miners ({{ data['profits']|length }})</legend>
+        <table style="width:100%">
+            <tr>
+                <th>Model</th>
+                <th>Coin</th>
+                <th>Network hashrate</th>
+                <th>Number of devices</th>
+                <th>Revenue / Day</th>
+                <th>Revenue / Year</th>
+                <th>Cost / Day</th>
+                <th>Watts</th>
+                <th>Break even price</th>
+                <th>Current Price</th>
+                <th>Daily return</th>
+            </tr>
+            {%- for miner in data['profits'] %}
+            <tr{%- if miner.errors %} class="error" {%- endif %}>
+                <td>{{ miner.miner_instance.miner.model.model }}</td>
+                <td>{{ miner.data['coin'].name }} </td>
+                <td>{{ miner.data['network_hash_value'] }} {{ miner.data['network_hash_unit'] }}</td>
+                <td>{{ miner.number_of_devices() }}</td>
+                <td>${{ miner.data['revenue_per_day'] }}</td>
+                <td>${{ miner.data['revenue_per_year'] }}</td>
+                <td>${{ miner.data['cost_per_day'] }}</td>
+                <td>{{ miner.miner_instance.miner.model.watts }}</td>
+                <td>${{ miner.data['break_even_price'] }}</td>
+                <td>${{ miner.data['current_price'] }}</td>
+                <td>{{ miner.data['daily_return_in_coin'] }}</td>
+            </tr>
+            {%- endfor %}
+        </table>
+    </fieldset>
+    <br>
+    <div>Daily <span class='revenue'>${{ data['daily_revenue_usd'] }}</span> <span class='cost'>${{ data['daily_cost_usd'] }}</span></div>
+    <div>Montly <span class='revenue'>${{ 30 * data['daily_revenue_usd'] }}</span> <span class='cost'>${{ 30 * data['daily_cost_usd'] }}</span></div>
+    <div>Yearly <span class='revenue'>${{ 365 * data['daily_revenue_usd'] }}</span> <span class='cost'>${{ 365 * data['daily_cost_usd'] }}</span></div>
+    <i>Generated in {{ loading_time }} seconds.</i>
+</body>
+
+</html>

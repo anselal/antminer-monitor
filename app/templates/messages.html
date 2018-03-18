@@ -1,0 +1,7 @@
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="{{ category }}">
+            <strong>{{ message }}</strong>
+            </div>
+        {% endfor %}
+    {% endif %}

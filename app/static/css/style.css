@@ -37,7 +37,7 @@ th {
     color: white;
 }
 
-.info, .success, .warning, .error {
+.debug .info, .success, .warning, .error {
     margin: 10px 0;
     padding: 12px;
     border-radius: .5em; /* add rounder corners */
@@ -63,4 +63,9 @@ th {
 .error {
     color: #D8000C;
     background-color: #FFBABA;
+}
+
+.debug {
+    color: rgb(116, 115, 115);
+    background-color: rgb(199, 199, 199);
 }

@@ -29,6 +29,7 @@ class CgminerAPI(object):
             if sys.version_info.major == 2:
                 sock.send(json.dumps(payload))
             if sys.version_info.major == 3:
+                sock.send(bytes(json.dumps(payload), 'utf-8'))
                 sock.send(bytes(json.dumps(payload),'utf-8'))
             received = self._receive(sock)
         except Exception as e:
@@ -67,12 +68,3 @@ class CgminerAPI(object):
             return self.command(attr, arg)
 
         return out
-
-
-if __name__ == '__main__':
-    L3 = CgminerAPI(host='192.168.1.103')
-    print(L3.stats())
-    S7 = CgminerAPI(host='192.168.1.107')
-    print(S7.stats())
-    S9 = CgminerAPI(host='192.168.1.109')
-    print(S9.stats())

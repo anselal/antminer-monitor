@@ -1,0 +1,33 @@
+    {%- if inactive_miners %}
+    <fieldset name="inactive_miner_list">
+        <legend>In-active Miners ({{ inactive_miners|length }})</legend>
+        <table style="width:100%">
+            <tr>
+                <th>IP Address</th>
+                <th>Model</th>
+                <th>Remarks</th>
+                <th>Status</th>
+                {%- if is_request %}
+                <th>Remove</th>
+                {%- endif %}
+            </tr>
+            {%- for inactive_miner in inactive_miners|sort(attribute='ip') %}
+            <tr>
+                <td>
+                    <a target="_blank" href="http://{{ inactive_miner.ip }}">{{ inactive_miner.ip }}</a>
+                </td>
+                <td>{{ inactive_miner.model.model }}</td>
+                <td>{{ inactive_miner.remarks }}</td>
+                <td>Error: Check connection or IP Address</td>
+                {%- if is_request %}
+                <td>
+                    <a href={{ url_for( 'delete_miner', id=inactive_miner.id) }}>
+                        <img src="/static/images/assets/remove.png"></img>
+                    </a>
+                </td>
+                {%- endif %}
+            </tr>
+            {%- endfor %}
+        </table>
+    </fieldset>
+    {%- endif %}
