@@ -1,4 +1,5 @@
-from flask import (jsonify,
+from flask import (Blueprint,
+                   jsonify,
                    render_template,
                    request,
                    redirect,
@@ -17,8 +18,9 @@ import re
 from datetime import timedelta
 import time
 
+antminer = Blueprint('antminer', __name__, template_folder='../templates')
 
-@app.route('/')
+@antminer.route('/')
 def miners():
     # Init variables
     start = time.clock()
@@ -155,7 +157,7 @@ def miners():
 
     end = time.clock()
     loading_time = end - start
-    return render_template('home.html',
+    return render_template('antminer/home.html',
                            version=__version__,
                            models=models,
                            active_miners=active_miners,
@@ -173,7 +175,7 @@ def miners():
                            )
 
 
-@app.route('/add', methods=['POST'])
+@antminer.route('/add', methods=['POST'])
 def add_miner():
     miner_ip = request.form['ip']
     miner_model_id = request.form.get('model_id')
@@ -192,12 +194,12 @@ def add_miner():
         db.session.rollback()
         flash("IP Address {} already added".format(miner_ip), "error")
 
-    return redirect(url_for('miners'))
+    return redirect(url_for('antminer.miners'))
 
 
-@app.route('/delete/<id>')
+@antminer.route('/delete/<id>')
 def delete_miner(id):
     miner = Miner.query.filter_by(id=int(id)).first()
     db.session.delete(miner)
     db.session.commit()
-    return redirect(url_for('miners'))
+    return redirect(url_for('antminer.miners'))
