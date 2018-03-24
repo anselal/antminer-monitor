@@ -1,4 +1,4 @@
-from app import db
+from antminermonitor.extensions import db
 
 
 class Settings(db.Model):
