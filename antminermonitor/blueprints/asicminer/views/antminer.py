@@ -157,7 +157,7 @@ def miners():
 
     end = time.clock()
     loading_time = end - start
-    return render_template('antminer/home.html',
+    return render_template('asicminer/home.html',
                            version=__version__,
                            models=models,
                            active_miners=active_miners,
