@@ -5,6 +5,7 @@ from flask import (Blueprint,
                    redirect,
                    url_for,
                    flash,
+                   current_app,
                    )
 from lib.pycgminer import (get_summary,
                                get_pools,
@@ -12,13 +13,14 @@ from lib.pycgminer import (get_summary,
                                )
 from lib.util_hashrate import update_unit_and_value
 from sqlalchemy.exc import IntegrityError
-from app import app, db, logger, __version__
-from app.models import Miner, MinerModel, Settings
+from antminermonitor.extensions import db
+from antminermonitor.blueprints.asicminer.models import Miner, MinerModel, Settings
 import re
 from datetime import timedelta
 import time
 
 antminer = Blueprint('antminer', __name__, template_folder='../templates')
+
 
 @antminer.route('/')
 def miners():
@@ -106,7 +108,7 @@ def miners():
             # Flash error messages
             if Xs > 0:
                 error_message = "[WARNING] '{}' chips are defective on miner '{}'.".format(Xs, miner.ip)
-                logger.warning(error_message)
+                current_app.logger.warning(error_message)
                 flash(error_message, "warning")
                 errors = True
                 miner_errors.update({miner.ip: error_message})
@@ -116,29 +118,29 @@ def miners():
                             miner.model.model,
                             Os + Xs,
                             total_chips)
-                logger.error(error_message)
+                current_app.logger.error(error_message)
                 flash(error_message, "error")
                 errors = True
                 miner_errors.update({miner.ip: error_message})
             if temps:
                 if max(temps) >= 80:
                     error_message = "[WARNING] High temperatures on miner '{}'.".format(miner.ip)
-                    logger.warning(error_message)
+                    current_app.logger.warning(error_message)
                     flash(error_message, "warning")
             if not temps:
                 temperatures.update({miner.ip: 0})
                 error_message = "[ERROR] Could not retrieve temperatures from miner '{}'.".format(miner.ip)
-                logger.warning(error_message)
+                current_app.logger.warning(error_message)
                 flash(error_message, "error")
 
     # Flash success/info message
     if not miners:
         error_message = "[INFO] No miners added yet. Please add miners using the above form."
-        logger.info(error_message)
+        current_app.logger.info(error_message)
         flash(error_message, "info")
     elif not errors:
         error_message = "[INFO] All miners are operating normal. No errors found."
-        logger.info(error_message)
+        current_app.logger.info(error_message)
         flash(error_message, "info")
 
     # flash("[INFO] Check chips on your miner", "info")
@@ -158,7 +160,7 @@ def miners():
     end = time.clock()
     loading_time = end - start
     return render_template('asicminer/home.html',
-                           version=__version__,
+                           version=current_app.config['__VERSION__'],
                            models=models,
                            active_miners=active_miners,
                            inactive_miners=inactive_miners,
