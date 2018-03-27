@@ -1,10 +1,14 @@
 from flask import Blueprint, jsonify
 from lib.pycgminer import (get_summary,
-                               get_pools,
-                               get_stats,
-                               )
+                           get_pools,
+                           get_stats,
+                           )
 
-antminer_json = Blueprint('antminer_json', __name__, template_folder='../templates')
+antminer_json = Blueprint('antminer_json',
+                          __name__,
+                          template_folder='../templates',
+                          )
+
 
 @antminer_json.route('/<ip>/summary')
 def summary(ip):

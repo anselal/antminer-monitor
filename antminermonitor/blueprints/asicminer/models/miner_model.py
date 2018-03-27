@@ -9,4 +9,5 @@ class MinerModel(db.Model):
     description = db.Column(db.String(255), nullable=True)
 
     def __repr__(self):
-        return "MinerModel(model='{}', chips={}, description='{}')".format(self.model, self.chips, self.description)
+        return "MinerModel(model='{}', chips={}, description='{}')" \
+            .format(self.model, self.chips, self.description)

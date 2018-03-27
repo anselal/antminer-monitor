@@ -2,18 +2,19 @@
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights 
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
+# The above copyright notice and this permission notice shall be included in
+# all
 # copies or substantial portions of the Software.
 #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
@@ -49,13 +50,14 @@ class CgminerAPI(object):
             if sys.version_info.major == 2:
                 sock.send(json.dumps(payload))
             if sys.version_info.major == 3:
-                sock.send(bytes(json.dumps(payload),'utf-8'))
+                sock.send(bytes(json.dumps(payload), 'utf-8'))
             received = self._receive(sock)
         except Exception as e:
             return dict({'STATUS': [{'STATUS': 'error', 'description': e}]})
         else:
             # the null byte makes json decoding unhappy
-            # also add a comma on the output of the `stats` command by replacing '}{' with '},{'
+            # also add a comma on the output of the `stats` command by
+            # replacing '}{' with '},{'
             return json.loads(received[:-1].replace('}{', '},{'))
         finally:
             # sock.shutdown(socket.SHUT_RDWR)

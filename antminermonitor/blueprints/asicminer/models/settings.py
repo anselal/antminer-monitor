@@ -8,4 +8,5 @@ class Settings(db.Model):
     description = db.Column(db.String(255))
 
     def __repr__(self):
-        return "Settings(name='{}', value={}, description='{}')".format(self.name, self.value, self.description)
+        return "Settings(name='{}', value={}, description='{}')" \
+            .format(self.name, self.value, self.description)
