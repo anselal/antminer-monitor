@@ -1,5 +1,4 @@
 from flask import Blueprint, jsonify
-from app import app
 from lib.pycgminer import (get_summary,
                                get_pools,
                                get_stats,
