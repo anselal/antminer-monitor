@@ -297,8 +297,10 @@ def activate_job():
 
                 # Expensive check (CGMiner API)
                 active_miner_instances = []
+                cgminer_check = False
                 if len(messages) == 0 and time.time() - last_run_time >= AGENT_INTERVAL_SECS:
                     logger.info("CGMiner API checks in progress...")
+                    cgminer_check = True
                     for miner in miners:
                         miner_status = get_miner_status(miner)
                         if not miner_status:
@@ -346,10 +348,10 @@ def activate_job():
                     else:
                         logger.debug("Email the same as previous... skipping...")
                 else:
-                    if not last_email_message is None:
+                    if not last_email_message is None and cgminer_check:
                         msg = "All miners are working as expected"
                         send_email(config.GMAIL_USER, config.GMAIL_PWD, config.EMAIL_TO, "Monitor Success", msg, msg);
-                    last_email_message = None
+                        last_email_message = None
             except Exception as e:
                 logger.error("Error. Message:{}".format(e.message))
                 last_status_is_ok = False
