@@ -252,7 +252,8 @@ def try_http_connect(miners, timeout):
 
     return failed_miners
 
-
+# Some troubleshooting queries:
+# select m.ip, count(*) count from miner_event me inner join miner m on me.miner_id=m.id group by m.ip order by count desc;
 def log_miner_event(miner, event_type, message):
     try:
         logger.debug("Miner:{} type:{} message:{}".format(miner.ip, event_type, message))
@@ -277,6 +278,9 @@ def activate_job():
         while True:
             try:
                 messages = []
+                has_errors = False                
+                has_warnings = False
+
                 # Light check (HTTP connect)
                 miners = Miner.query.all()
                 if last_run_time != 0 and time.time() - lightweight_last_run_time >= lightweight_interval_secs:
@@ -288,6 +292,7 @@ def activate_job():
                             inactive_miner.ip)
                         messages.append(("error", msg))
                         log_miner_event(inactive_miner, "error", msg)
+                        has_errors = True
                     lightweight_last_run_time = time.time()
 
                 # Expensive check (CGMiner API)
@@ -302,21 +307,25 @@ def activate_job():
                                 ("error", "Miner {} not accessible".format(miner.ip)))
                             log_miner_event(
                                 miner, "error", "Miner not accessible")
+                            has_errors = True
                         else:
                             for miner_instance in miner_status.miner_instance_list:
                                 active_miner_instances.append(miner_instance)
                             for message in miner_status.errors:
                                 messages.append(("error", message))
                                 log_miner_event(miner, "error", message)
+                                has_errors = True
                             for message in miner_status.warnings:
                                 messages.append(('warning', message))
-                                log_miner_event(miner, "error", message)
+                                log_miner_event(miner, "warning", message)
+                                has_warnings = True
 
                     # Update last run time.
                     last_run_time = time.time()
 
                 # Update status
                 last_status_is_ok = len(messages) == 0
+                #assert (has_errors or has_warnings) == len(messages) > 0
                 if not last_status_is_ok:
                     body_html = (render_without_request("active_miners.html", active_miner_instances=active_miner_instances) +
                                  render_without_request("messages.html", messages=messages))
@@ -324,8 +333,12 @@ def activate_job():
                         config.DOMAIN_ADDR)
                     # Just send the error email if it changed
                     if last_email_message <> body_html:
+                        if has_errors:
+                            email_title = "Monitoring Error"
+                        else:
+                            email_title = "Monitoring warning"
                         for i in range(0, 10):
-                            if send_email(config.GMAIL_USER, config.GMAIL_PWD, config.EMAIL_TO, "Monitor Alert", body_html, body_plain):
+                            if send_email(config.GMAIL_USER, config.GMAIL_PWD, config.EMAIL_TO, email_title, body_html, body_plain):
                                 last_email_message = body_html
                                 break
                             logger.warn(
@@ -333,6 +346,9 @@ def activate_job():
                     else:
                         logger.debug("Email the same as previous... skipping...")
                 else:
+                    if not last_email_message is None:
+                        msg = "All miners are working as expected"
+                        send_email(config.GMAIL_USER, config.GMAIL_PWD, config.EMAIL_TO, "Monitor Success", msg, msg);
                     last_email_message = None
             except Exception as e:
                 logger.error("Error. Message:{}".format(e.message))
