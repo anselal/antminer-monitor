@@ -9,6 +9,7 @@ models.append(MinerModel(model='S7', chips='45,45,45', temp_keys='temp', descrip
 models.append(MinerModel(model='S9', chips='63,63,63', temp_keys='temp2_', description='Bitcoin Miner 13.5 TH/s'))
 models.append(MinerModel(model='D3', chips='60,60,60', temp_keys='temp2_', description='DASH Miner 17 GH/s'))
 models.append(MinerModel(model='T9', chips='57,57,57', temp_keys='temp2_', description='Bitcoin Miner 12.5 TH/s'))
+models.append(MinerModel(model='T9+', chips='54,54,54', temp_keys='temp2_', description='Bitcoin Miner 10.5 TH/s'))
 models.append(MinerModel(model='A3', chips='60,60,60', temp_keys='temp2_', description='Siacoin Miner 815 GH/s'))
 models.append(MinerModel(model='L3', chips='36,36,36,36', temp_keys='temp2_', description='Litecoin Miner 250 MH/s'))
 models.append(MinerModel(model='R4', chips='63,63', temp_keys='temp2_', description='Bitcoin Miner 8 TH/s'))
