@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'layouts/base.html' %}
 
 {% block meta_description %}
 Antminer Monitor, antminer, monitor, antmon, bitmain, bitcoin, litecoin, dash, 
@@ -17,7 +17,7 @@ cryptocurrency, crypto, miner, mine, mining
     <div>
       <fieldset name="add">
           <legend>Add Miner</legend>
-          <form action="{{ url_for('add_miner') }}" method="POST">
+          <form action="{{ url_for('antminer.add_miner') }}" method="POST">
               <div class="addminer_container">
                   <div>
                       <label for="ip">IP Address: </label>
@@ -89,7 +89,7 @@ cryptocurrency, crypto, miner, mine, mining
                     <td>{{ inactive_miner.model.model }}</td>
                     <td>{{ inactive_miner.remarks }}</td>
                     <td>Error: Check connection or IP Address</td>
-                    <td><a href={{ url_for('delete_miner', id=inactive_miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
+                    <td><a href={{ url_for('antminer.delete_miner', id=inactive_miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
                 </tr>
             {%- endfor %}
         </table>
@@ -136,7 +136,7 @@ cryptocurrency, crypto, miner, mine, mining
                 <!--<td><a target="_blank" href="/{{ active_miner.ip }}/summary">Summary</a> |
                     <a target="_blank" href="/{{ active_miner.ip }}/pools">Pools</a> |
                     <a target="_blank" href="/{{ active_miner.ip }}/stats">Stats</a></td>-->
-                <td><a href={{ url_for('delete_miner', id=active_miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
+                <td><a href={{ url_for('antminer.delete_miner', id=active_miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
             </tr>
         {%- endfor %}
     </table>

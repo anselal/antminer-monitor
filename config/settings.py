@@ -1,4 +1,7 @@
+__VERSION__ = '0.4.0'
+
 DEBUG = True
+LOG_LEVEL = 'DEBUG'  # CRITICAL / ERROR / WARNING / INFO / DEBUG
 
 SECRET_KEY = 'super secret key'
 
