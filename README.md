@@ -37,7 +37,7 @@ e.g. If you unzipped the file in the folder `C:\Users\foo\Downloads\antminer-mon
 ```sh
 cd C:\Users\foo\Downloads\antminer-monitor-master
 ```
-  > You command prompt or terminal should now look like  `C:\Users\foo\Downloads\antminer-monitor-master>`
+  > Your command prompt or terminal should now look like  `C:\Users\foo\Downloads\antminer-monitor-master>`
   4. **This step apply only to *Mac* users**. If you are a Windows or Linux user continue to step 5.
   > Mac users should run all the commands with sudo eg. `sudo python get_pip.py`
   
