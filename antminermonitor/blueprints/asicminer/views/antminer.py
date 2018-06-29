@@ -44,7 +44,7 @@ def miners():
                                  "S7": {"value": 0, "unit": "GH/s"},
                                  "S9": {"value": 0, "unit": "GH/s"},
                                  "D3": {"value": 0, "unit": "MH/s"},
-                                 "T9": {"value": 0, "unit": "TH/s"},
+                                 "T9": {"value": 0, "unit": "GH/s"},
                                  "A3": {"value": 0, "unit": "GH/s"},
                                  "L3": {"value": 0, "unit": "MH/s"},
                                  "R4": {"value": 0, "unit": "TH/s"},
