@@ -32,6 +32,9 @@ def create_db():
     models.append(MinerModel(model='T9', chips='57,57,57',
                              temp_keys='temp2_',
                              description='Bitcoin Miner 12.5 TH/s'))
+    models.append(MinerModel(model='T9+', chips='54,54,54',
+                             temp_keys='temp2_',
+                             description='Bitcoin Miner 10.5 TH/s'))
     models.append(MinerModel(model='A3', chips='60,60,60',
                              temp_keys='temp2_',
                              description='Siacoin Miner 815 GH/s'))
@@ -103,6 +106,9 @@ def update_db():
     models.append(MinerModel(model='T9', chips='57,57,57',
                              temp_keys='temp2_',
                              description='Bitcoin Miner 12.5 TH/s'))
+    models.append(MinerModel(model='T9+', chips='54,54,54',
+                             temp_keys='temp2_',
+                             description='Bitcoin Miner 10.5 TH/s'))
     models.append(MinerModel(model='A3', chips='60,60,60',
                              temp_keys='temp2_',
                              description='Siacoin Miner 815 GH/s'))
