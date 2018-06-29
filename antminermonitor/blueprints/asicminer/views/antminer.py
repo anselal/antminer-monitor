@@ -49,7 +49,8 @@ def miners():
                                  "A3":  {"value": 0, "unit": "GH/s"},
                                  "L3":  {"value": 0, "unit": "MH/s"},
                                  "R4":  {"value": 0, "unit": "TH/s"},
-                                 "V9":  {"value": 0, "unit": "GH/s"}, }
+                                 "V9":  {"value": 0, "unit": "GH/s"},
+                                 "X3":  {"value": 0, "unit": "KH/s"}, }
 
     errors = False
     miner_errors = {}

@@ -47,6 +47,9 @@ def create_db():
     models.append(MinerModel(model='V9', chips='45,45,45',
                              temp_keys='temp2_',
                              description='Bitcoin Miner 4 TH/s'))
+    models.append(MinerModel(model='X3', chips='60,60,60',
+                             temp_keys='temp2_',
+                             description='CryptoNight Miner 220 KH/s'))
     settings = []
     settings.append(Settings(name="temperature_alert",
                              value="80", description=""))
@@ -121,6 +124,10 @@ def update_db():
     models.append(MinerModel(model='V9', chips='45,45,45',
                              temp_keys='temp2_',
                              description='Bitcoin Miner 4 TH/s'))
+    models.append(MinerModel(model='X3', chips='60,60,60',
+                             temp_keys='temp2_',
+                             description='CryptoNight Miner 220 KH/s'))
+
     # add Settings
     settings = []
     settings.append(Settings(name="temperature_alert",
