@@ -79,6 +79,6 @@ def extensions(app):
     :return: None
     """
     db.init_app(app)
-    migrate.init_app(app)
+    migrate.init_app(app, db)
 
     return
