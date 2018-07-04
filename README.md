@@ -61,10 +61,12 @@ python manage.py create_db
 ### Run the app
  (Mac users don't forget `sudo`)
 ```sh
-python manage.py run
+python manage.py run -h 0.0.0.0 -p 5000
 ```
 
 Fire up a browser and point it to `http://localhost:5000` if you are running the app on the same machine OR `http://<ip>:5000` if you are accesing the app from another machine on the same network, by replacing `<ip>` with the machine's ip running AntminerMonitor.
+
+Feel free to change the host (-h) and port (-p) parameters as needed by your setup.
 
 ### Upgrade
 
