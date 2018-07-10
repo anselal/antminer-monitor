@@ -128,45 +128,43 @@ def miners():
 
             # Flash error messages
             if Xs > 0:
-                error_message = "[WARNING] '{}' chips are defective on "
-                "miner '{}'.".format(Xs, miner.ip)
+                error_message = ("[WARNING] '{}' chips are defective on "
+                                 "miner '{}'.").format(Xs, miner.ip)
                 current_app.logger.warning(error_message)
                 flash(error_message, "warning")
                 errors = True
                 miner_errors.update({miner.ip: error_message})
             if Os + Xs < total_chips:
-                error_message = "[ERROR] ASIC chips are missing from miner "
-                "'{}'. Your Antminer '{}' has '{}/{} chips'." \
-                    .format(miner.ip,
-                            miner.model.model,
-                            Os + Xs,
-                            total_chips)
+                error_message = (
+                    "[ERROR] ASIC chips are missing from miner "
+                    "'{}'. Your Antminer '{}' has '{}/{} chips'.").format(
+                        miner.ip, miner.model.model, Os + Xs, total_chips)
                 current_app.logger.error(error_message)
                 flash(error_message, "error")
                 errors = True
                 miner_errors.update({miner.ip: error_message})
             if temps:
                 if max(temps) >= 80:
-                    error_message = "[WARNING] High temperatures on "
-                    "miner '{}'.".format(miner.ip)
+                    error_message = ("[WARNING] High temperatures on "
+                                     "miner '{}'.").format(miner.ip)
                     current_app.logger.warning(error_message)
                     flash(error_message, "warning")
             if not temps:
                 temperatures.update({miner.ip: 0})
-                error_message = "[ERROR] Could not retrieve temperatures "
-                "from miner '{}'.".format(miner.ip)
+                error_message = ("[ERROR] Could not retrieve temperatures "
+                                 "from miner '{}'.").format(miner.ip)
                 current_app.logger.warning(error_message)
                 flash(error_message, "error")
 
     # Flash success/info message
     if not miners:
-        error_message = "[INFO] No miners added yet. "
-        "Please add miners using the above form."
+        error_message = ("[INFO] No miners added yet. "
+                         "Please add miners using the above form.")
         current_app.logger.info(error_message)
         flash(error_message, "info")
     elif not errors:
-        error_message = "[INFO] All miners are operating normal. "
-        "No errors found."
+        error_message = ("[INFO] All miners are operating normal. "
+                         "No errors found.")
         current_app.logger.info(error_message)
         flash(error_message, "info")
 
