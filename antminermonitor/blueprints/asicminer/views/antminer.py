@@ -1,26 +1,15 @@
-from flask import (
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    flash,
-    current_app,
-)
-from lib.pycgminer import (
-    get_pools,
-    get_stats,
-)
-from lib.util_hashrate import update_unit_and_value
-from sqlalchemy.exc import IntegrityError
-from antminermonitor.extensions import db
-from antminermonitor.blueprints.asicminer.models import (
-    Miner,
-    MinerModel,
-)
 import re
-from datetime import timedelta
 import time
+from datetime import timedelta
+
+from flask import (Blueprint, current_app, flash, redirect, render_template,
+                   request, url_for)
+from sqlalchemy.exc import IntegrityError
+
+from antminermonitor.blueprints.asicminer.models import Miner, MinerModel
+from antminermonitor.extensions import db
+from lib.pycgminer import get_pools, get_stats
+from lib.util_hashrate import update_unit_and_value
 
 antminer = Blueprint('antminer', __name__, template_folder='../templates')
 
@@ -40,17 +29,52 @@ def miners():
     hash_rates = {}
     hw_error_rates = {}
     uptimes = {}
-    total_hash_rate_per_model = {"L3+": {"value": 0, "unit": "MH/s"},
-                                 "S7":  {"value": 0, "unit": "GH/s"},
-                                 "S9":  {"value": 0, "unit": "GH/s"},
-                                 "D3":  {"value": 0, "unit": "MH/s"},
-                                 "T9":  {"value": 0, "unit": "GH/s"},
-                                 "T9+": {"value": 0, "unit": "GH/s"},
-                                 "A3":  {"value": 0, "unit": "GH/s"},
-                                 "L3":  {"value": 0, "unit": "MH/s"},
-                                 "R4":  {"value": 0, "unit": "TH/s"},
-                                 "V9":  {"value": 0, "unit": "GH/s"},
-                                 "X3":  {"value": 0, "unit": "KH/s"}, }
+    total_hash_rate_per_model = {
+        "L3+": {
+            "value": 0,
+            "unit": "MH/s"
+        },
+        "S7": {
+            "value": 0,
+            "unit": "GH/s"
+        },
+        "S9": {
+            "value": 0,
+            "unit": "GH/s"
+        },
+        "D3": {
+            "value": 0,
+            "unit": "MH/s"
+        },
+        "T9": {
+            "value": 0,
+            "unit": "GH/s"
+        },
+        "T9+": {
+            "value": 0,
+            "unit": "GH/s"
+        },
+        "A3": {
+            "value": 0,
+            "unit": "GH/s"
+        },
+        "L3": {
+            "value": 0,
+            "unit": "MH/s"
+        },
+        "R4": {
+            "value": 0,
+            "unit": "TH/s"
+        },
+        "V9": {
+            "value": 0,
+            "unit": "GH/s"
+        },
+        "X3": {
+            "value": 0,
+            "unit": "KH/s"
+        },
+    }
 
     errors = False
     miner_errors = {}
@@ -64,7 +88,10 @@ def miners():
         else:
             # Get worker name
             miner_pools = get_pools(miner.ip)
-            worker = miner_pools['POOLS'][0]['User']
+            active_pool = [
+                pool for pool in miner_pools['POOLS'] if pool['Stratum Active']
+            ]
+            worker = active_pool[0]['User']
             # Get miner's ASIC chips
             asic_chains = [
                 miner_stats['STATS'][1][chain]
