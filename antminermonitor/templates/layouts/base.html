@@ -12,7 +12,9 @@
     {% endblock head_meta -%}
     <title>{% block title -%}{% endblock title %}</title>
     {% block head_css -%}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/menu.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/main.css') }}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/genericons/3.0.3/genericons.css" />
     {% endblock head_css -%}
     {% block head -%}
     {% endblock head -%}
@@ -20,13 +22,16 @@
     {% endblock head_tail -%}
 </head>
 <body>
+    {% block menu -%}
+        {% include "layouts/menu.html" -%}
+    {% endblock menu -%}
+
     {% block page_body -%}
     <div id="container">
 
         {% block messages -%}
 
         {% endblock messages -%}
-
 
         {% block body -%}{% endblock body -%}
     </div>
