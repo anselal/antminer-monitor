@@ -50,7 +50,10 @@
         alt="Fork me on GitHub"
         data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
         <center>
-        <i>Generated in {{ loading_time }} seconds</br></br>
+	{% if loading_time -%}
+        <i>Generated in {{ loading_time }} seconds
+	{% endif -%}
+	<br><br>
         <script src="{{ url_for('static', filename='scripts/donate.js') }}"></script></br></br>
         &copy; Copyright 2017-2018 by <a href="https://soulis.tech">Anastasios Selalmazidis</a>.
         Source code <a target="_blank"
