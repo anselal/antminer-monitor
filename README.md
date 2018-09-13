@@ -73,7 +73,7 @@ Feel free to change the host (-h) and port (-p) parameters as needed by your set
 ##### BEFORE YOU BEGIN: **You can always do a fresh install to upgrade to a newer version but you will have to add your miners again**
  To upgrade AntminerMonitor to a newer version follow the steps below:
  
- - Do a backup of your database (file: `app/db/app.db`) in case something goes wrong
+ - Do a backup of your database (file: `antminermonitor/db/app.db`) in case something goes wrong
  - Download the latest version of #AntminerMonitor from https://github.com/anselal/antminer-monitor/archive/master.zip
  - Unzip and replace all the files in your current installation
  - Install requirements in case we added something new:
