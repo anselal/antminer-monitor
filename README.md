@@ -68,6 +68,8 @@ Fire up a browser and point it to `http://localhost:5000` if you are running the
 
 Feel free to change the host (-h) and port (-p) parameters as needed by your setup.
 
+You can set the host `(-h)` and port `(-p)` parameters in your .flaskenv file to avoid typing them when starting the app.
+
 ### Upgrade
 
 ##### BEFORE YOU BEGIN: **You can always do a fresh install to upgrade to a newer version but you will have to add your miners again**
