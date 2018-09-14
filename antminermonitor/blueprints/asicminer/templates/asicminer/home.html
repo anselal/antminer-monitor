@@ -142,3 +142,8 @@ cryptocurrency, crypto, miner, mine, mining
     </table>
 </fieldset>
 {% endblock %}
+
+{% block tail_js -%}
+{{ super() -}}
+    <script src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+{% endblock -%}
