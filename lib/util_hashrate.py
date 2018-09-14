@@ -13,6 +13,10 @@ def update_unit_and_value(value, unit):
             unit = 'PH/s'
         elif unit == 'PH/s':
             unit = 'EH/s'
+        elif unit == 'KSol/s':
+            unit = 'MSol/s'
+        elif unit == 'MSol/s':
+            unit = 'GSol/s'
         else:
             assert False, "Unsupported unit: {}".format(unit)
     return (value, unit)
