@@ -57,9 +57,9 @@ sudo easy_install pip
 ```sh
 python -m pip install -r requirements.txt
 python manage.py create_db
+```
 
 ### Login Page
-```
   1. Create admin user
 ```sh
 python manage.py create_admin
