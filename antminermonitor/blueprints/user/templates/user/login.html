@@ -1,0 +1,54 @@
+{% extends "layouts/base.html" %}
+{% block head_css %}
+    {{ super() -}}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">
+
+    <style>
+    div .loginform {
+        position: relative;
+        top: 30%;
+        left: 50%;
+        margin-top: -50px;
+        margin-left: -50px;
+        width: 100px;
+        //height: 100px;
+        //background: red;
+    }
+    </style>
+    
+    {% endblock %}
+{% block body %}
+    <br><br><br><br>
+    <fieldset class="loginform">
+    <div>
+        <form method="post" action="{{ url_for('user.login') }}">            
+        {%- with messages = get_flashed_messages(with_categories=true) %}
+            {%- if messages %}
+                {%- for category, message in messages %}
+                    <div class="{{ category }}">
+                        <strong>{{ message }}</strong>
+                    </div>
+                {%- endfor %}
+            {%- endif %}
+        {%- endwith %}
+            <h2 class="form-signin-heading">Login</h2>
+            {{ form.hidden_tag() }}
+	    {{ form.username.label }}<br>
+	    {{ form.username(class="form-control", placeholder="Username", required="", autofocus="") }}<br>
+            {% for error in form.username.errors %}
+	    <span style="color: red;">[{{ error }}]</span><br>
+            {% endfor %}
+	    <br>
+	    {{ form.password.label }}<br>
+	    {{ form.password(class="form-control", placeholder="Password", required="") }}<br>
+            {% for error in form.password.errors %}
+	    <span style="color: red;">[{{ error }}]</span><br>
+            {% endfor %}
+	    <br>
+	    {{ form.remember() }} {{ form.remember.label }}<br><br>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+        </form>
+    </div>
+    </legend>
+{% endblock %}
+

@@ -4,6 +4,7 @@ from antminermonitor.extensions import db
 from antminermonitor.blueprints.asicminer.models.miner import Miner
 from antminermonitor.blueprints.asicminer.models.miner_model import MinerModel
 from antminermonitor.blueprints.asicminer.models.settings import Settings
+from antminermonitor.blueprints.user.models import User
 
 cli = FlaskGroup(create_app=create_app)
 
@@ -138,7 +139,9 @@ def update_db():
 
     # drop all tables
     print("[INFO] Dropping tables...")
-    db.drop_all()
+    Miner.__table__.drop(db.engine)
+    MinerModel.__table__.drop(db.engine)
+    Settings.__table__.drop(db.engine)
     # create all tables
     print("[INFO] Recreating all tables...")
     db.create_all()
@@ -251,6 +254,32 @@ def update_db():
         db.session.commit()
 
     print("[INFO] Updating DB successfully finished")
+
+
+@cli.command()
+def create_admin():
+    """
+        Create admin user if not exist with default password 'antminermonitor'
+    """
+    db.create_all()
+    print("[INFO] Checking if admin user exists...")
+    admin = User.query.filter_by(username='admin').first()
+
+    if not admin:
+        print("[INFO] Creating admin user with password 'antminermonitor'...")
+        admin = User(
+            username='admin',
+            email='foo@bar.org',
+            surname='admin',
+            firstname='admin',
+            active=0)
+        admin.set_password('antminermonitor')
+        db.session.add(admin)
+        db.session.commit()
+    elif admin:
+        print("[INFO] Admin user already exists.")
+    else:
+        print("[INFO] Something went wrong.")
 
 
 if __name__ == "__main__":
