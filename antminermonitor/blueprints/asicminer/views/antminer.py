@@ -78,6 +78,10 @@ def miners():
             "value": 0,
             "unit": "KSol/s"
         },
+        "E3": {
+            "value": 0,
+            "unit": "MH/s"
+        },
     }
 
     errors = False

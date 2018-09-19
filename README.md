@@ -9,7 +9,7 @@
 Lite Python based Antminer Monitor !!!
 
   - Add as many miners as you want
-  - Supports miners S7, S9, T9, T9+, L3, L3+, D3, A3, R4, V9, X3, Z9 mini
+  - Supports miners S7, S9, T9, T9+, L3, L3+, D3, A3, R4, V9, X3, Z9 mini, E3
   - Check their hashrate, temperatures, fan speed, chip condition, HW Error Rate, Uptime
   - Get in-app notifications about miner errors (needs refresh)
   - Log errors to file
