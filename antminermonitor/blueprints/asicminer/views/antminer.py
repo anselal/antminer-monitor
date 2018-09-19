@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from flask import (Blueprint, current_app, flash, redirect, render_template,
                    request, url_for)
+from flask_login import login_required
 from sqlalchemy.exc import IntegrityError
 
 from antminermonitor.blueprints.asicminer.models import Miner, MinerModel
@@ -15,6 +16,7 @@ antminer = Blueprint('antminer', __name__, template_folder='../templates')
 
 
 @antminer.route('/')
+@login_required
 def miners():
     # Init variables
     start = time.clock()
@@ -241,6 +243,7 @@ def miners():
 
 
 @antminer.route('/add', methods=['POST'])
+@login_required
 def add_miner():
     miner_ip = request.form['ip']
     miner_model_id = request.form.get('model_id')
@@ -265,6 +268,7 @@ def add_miner():
 
 
 @antminer.route('/delete/<id>')
+@login_required
 def delete_miner(id):
     miner = Miner.query.filter_by(id=int(id)).first()
     db.session.delete(miner)

@@ -1,13 +1,16 @@
 from flask import Flask
 
 from antminermonitor.blueprints.asicminer import antminer, antminer_json
+from antminermonitor.blueprints.user import user
 from antminermonitor.extensions import (
     db,
+    login_manager,
     migrate,
 )
 from antminermonitor.blueprints.asicminer.models.miner import Miner
 from antminermonitor.blueprints.asicminer.models.miner_model import MinerModel
 from antminermonitor.blueprints.asicminer.models.settings import Settings
+from antminermonitor.blueprints.user.models import User
 
 import logging
 import os
@@ -32,12 +35,14 @@ def create_app(script_info=None, settings_override=None):
 
     app.register_blueprint(antminer)
     app.register_blueprint(antminer_json)
+    app.register_blueprint(user, url_prefix='/user')
+    authentication(app, User)
     extensions(app)
 
     @app.shell_context_processor
     def make_shell_context():
         return dict(app=app, db=db, Miner=Miner, MinerModel=MinerModel,
-                    Settings=Settings)
+                    Settings=Settings, User=User)
 
     return app
 
@@ -79,6 +84,27 @@ def extensions(app):
     :return: None
     """
     db.init_app(app)
+    login_manager.init_app(app)
     migrate.init_app(app, db)
 
     return
+
+
+def authentication(app, user_model):
+    """
+    Initialize the Flask-Login extension (mutates the app passed in).
+
+    :param app: Flask application instance
+    :param user_model: Model that contains the authentication information
+    :type user_model: SQLAlchemy model
+    :return: None
+    """
+    login_manager.login_view = 'user.login'
+    # login_manager.login_message = ''
+    login_manager.refresh_view = 'user.login'
+    login_manager.needs_refresh_message = 'You need to login again to access'
+    ' this page!!!'
+
+    @login_manager.user_loader
+    def load_user(uid):
+        return user_model.query.get(uid)

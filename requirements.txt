@@ -1,4 +1,7 @@
 Flask==1.0.2
 Flask-SQLAlchemy==2.3.0
 Flask-Migrate==2.1.1
+Flask-Login==0.4.1
+Flask-WTF==0.14.2
 python-dotenv==0.9.1
+WTForms-Components==0.10.3
