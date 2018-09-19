@@ -14,6 +14,7 @@ Lite Python based Antminer Monitor !!!
   - Get in-app notifications about miner errors (needs refresh)
   - Log errors to file
   - Display total hashrate grouped by Model
+  - Password protected login page
 
 ### Screenshot
 
@@ -56,7 +57,15 @@ sudo easy_install pip
 ```sh
 python -m pip install -r requirements.txt
 python manage.py create_db
+
+### Login Page
 ```
+  1. Create admin user
+```sh
+python manage.py create_admin
+```
+
+Default creadentials are `username: admin` - `password: antminermonitor`. You can change the password from the settings menu.
 
 ### Run the app
  (Mac users don't forget `sudo`)
@@ -86,6 +95,8 @@ python -m pip install -r requirements.txt
 ```sh
 python manage.py update_db
 ```
+
+In case you didn't already do so, please follow the "Login" guide above to create the admin user.
 
 ### Donations
 
