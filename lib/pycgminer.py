@@ -1,4 +1,5 @@
 # Copyright (c) 2013 Thomas Sileo
+# Copyright (c) 2007 Anastasios Selalmazidis
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +28,11 @@ import sys
 class CgminerAPI(object):
     """ Cgminer RPC API wrapper. """
 
-    def __init__(self, host='localhost', port=4028):
+    def __init__(self, host='localhost', port=4028, socket_timeout=1):
         self.data = {}
         self.host = host
         self.port = port
+        self.timeout = socket_timeout
 
     def command(self, command, arg=None):
         """ Initialize a socket connection,
@@ -38,7 +40,7 @@ class CgminerAPI(object):
         receive the response (and decode it).
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
+        sock.settimeout(self.timeout)
 
         try:
             sock.connect((self.host, self.port))
@@ -52,6 +54,9 @@ class CgminerAPI(object):
             if sys.version_info.major == 3:
                 sock.send(bytes(json.dumps(payload), 'utf-8'))
             received = self._receive(sock)
+        except socket.timeout:
+            self.timeout += 1
+            self.command(command, arg)
         except Exception as e:
             return dict({'STATUS': [{'STATUS': 'error', 'description': e}]})
         else:
