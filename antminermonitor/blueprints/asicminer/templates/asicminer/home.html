@@ -85,7 +85,7 @@ cryptocurrency, crypto, miner, mine, mining
             </tr>
             {%- for inactive_miner in inactive_miners|sort(attribute='ip') %}
                 <tr>
-                    <td><a target="_blank" href="http://{{ inactive_miner.ip }}">{{ inactive_miner.ip }}</a></td>
+                    <td><a target="_blank" href="http://{{ inactive_miner.ip }}/cgi-bin/minerStatus.cgi">{{ inactive_miner.ip }}</a></td>
                     <td>{{ inactive_miner.model.model }}</td>
                     <td>{{ inactive_miner.remarks }}</td>
                     <td>Error: Check connection or IP Address</td>
@@ -119,7 +119,7 @@ cryptocurrency, crypto, miner, mine, mining
         </tr>
         {%- for active_miner in active_miners|sort(attribute='ip') %}
             <tr{%- if active_miner.ip in miner_errors %} class="error"{%- endif %}>
-                <td><a target="_blank" href="http://{{ active_miner.ip }}">{{ active_miner.ip }}</a></td>
+                <td><a target="_blank" href="http://{{ active_miner.ip }}/cgi-bin/minerStatus.cgi">{{ active_miner.ip }}</a></td>
                 <td>{{ workers[active_miner.ip] }}</td>
                 <td title="{{ active_miner.model.description }}">{{ active_miner.model.model }}</td>
                 <td>{{ active_miner.remarks }}</td>
