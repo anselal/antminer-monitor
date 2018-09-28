@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 
 from antminermonitor.blueprints.asicminer.models import Miner, MinerModel
 from antminermonitor.extensions import db
-from lib.pycgminer import get_pools, get_stats
+from lib.pycgminer import get_pools, get_stats, get_summary
 from lib.util_hashrate import update_unit_and_value
 
 antminer = Blueprint('antminer', __name__, template_folder='../templates')
@@ -101,7 +101,12 @@ def miners():
             active_pool = [
                 pool for pool in miner_pools['POOLS'] if pool['Stratum Active']
             ]
-            worker = active_pool[0]['User']
+            try:
+                worker = active_pool[0]['User']
+            except KeyError as k:
+                worker = ""
+            except ValueError as v:
+                worker = ""
             # Get miner's ASIC chips
             asic_chains = [
                 miner_stats['STATS'][1][chain]
@@ -109,11 +114,15 @@ def miners():
                 if "chain_acs" in chain
             ]
             # count number of working chips
-            O = [str(o).count('o') for o in asic_chains]
-            Os = sum(O)
+            o = [str(o).count('o') for o in asic_chains]
+            Os = sum(o)
             # count number of defective chips
             X = [str(x).count('x') for x in asic_chains]
+            C = [str(x).count('C') for x in asic_chains]
+            B = [str(x).count('B') for x in asic_chains]
             Xs = sum(X)
+            Bs = sum(B)
+            Cs = sum(C)
             # get number of in-active chips
             _dash_chips = [str(x).count('-') for x in asic_chains]
             _dash_chips = sum(_dash_chips)
@@ -136,9 +145,22 @@ def miners():
                 if miner_stats['STATS'][1][fan] != 0
             ]
             # Get GH/S 5s
-            ghs5s = float(str(miner_stats['STATS'][1]['GHS 5s']))
+            try:
+                ghs5s = float(str(miner_stats['STATS'][1]['GHS 5s']))
+            except ValueError as v:
+                ghs5s = 0
+            except KeyError as k:
+                miner_summary = get_summary(miner.ip)
+                ghs5s = float(str(miner_summary['SUMAMRY'][0]['GHS 5s']))
             # Get HW Errors
-            hw_error_rate = miner_stats['STATS'][1]['Device Hardware%']
+            try:
+                hw_error_rate = miner_stats['STATS'][1]['Device Hardware%']
+            except KeyError as k:
+                # Probably the miner is an Antminer E3
+                miner_summary = get_summary(miner.ip)
+                hw_error_rate = miner_summary['SUMMARY'][0]['Device Hardware%']
+            except ValueError as v:
+                hw_error_rate = 0
             # Get uptime
             uptime = timedelta(seconds=miner_stats['STATS'][1]['Elapsed'])
             #
@@ -180,6 +202,20 @@ def miners():
                 flash(error_message, "error")
                 errors = True
                 miner_errors.update({miner.ip: error_message})
+            if Bs > 0:
+                # flash an info message. Probably the E3 is still warming up
+                # error_message = (
+                #    "[INFO] Miner '{}' is still warming up").format(miner.ip)
+                # current_app.logger.error(error_message)
+                # flash(error_message, "info")
+                pass
+            if Cs > 0:
+                # flask an info message. Probably the E3 is still warming up
+                # error_message = (
+                #    "[INFO] Miner '{}' is still warming up").format(miner.ip)
+                # current_app.logger.error(error_message)
+                # flash(error_message, "info")
+                pass
             if temps:
                 if max(temps) >= 80:
                     error_message = ("[WARNING] High temperatures on "
