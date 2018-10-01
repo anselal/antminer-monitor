@@ -1,12 +1,12 @@
 from flask import (Blueprint, abort, flash, redirect, render_template, request,
                    session, url_for)
-from flask_login import login_required, login_user, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash
 
-from lib.util_url import is_safe_url
-from antminermonitor.extensions import db
 from antminermonitor.blueprints.user.forms import LoginForm, PasswordResetForm
 from antminermonitor.blueprints.user.models import User
+from antminermonitor.extensions import db
+from lib.util_url import is_safe_url
 
 user = Blueprint('user', __name__, template_folder='templates')
 
@@ -28,6 +28,9 @@ def login():
                 return redirect(url_for('antminer.miners'))
         flash("[ERROR] Invalid username or password", "error")
         return render_template('user/login.html', form=form)
+
+    if current_user.is_authenticated:
+        return redirect(url_for('antminer.miners'))
 
     return render_template('user/login.html', form=form)
 
