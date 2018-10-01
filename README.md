@@ -18,7 +18,7 @@ Lite Python based Antminer Monitor !!!
 
 ### Screenshot
 
-![Alt text](/antminermonitor/static/images/screenshot_v0.4.0.png?raw=true "Screenshot v0.4.0")
+![Alt text](/antminermonitor/static/images/screenshot_v0.5.0.png?raw=true "Screenshot v0.4.0")
 
 ### Requirements
 

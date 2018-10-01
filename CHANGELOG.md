@@ -2,6 +2,43 @@
 
 ## [Unreleased]
 
+## [v0.5.0] - 2018-10-01
+
+### Bug fixes
+- :wrench: config(hashrate): Fix Hashrate for Antminer T9. Closes #109
+- :wrench: config(hashrate): Fix Hashrate Unit for Antminer V9. Closes #90
+- :bug: fix(migrate): Add db parameter when initializing Flask-Migrate
+- :bug: fix(view): Fix line continuation. Closes #112
+- :bug: fix(view): Fix Interface always shows 1st pool worker. Closes #118
+- :bug: fix(migrate): flask migrate does not work due to relative database dir. Closes #120
+- :bug: Fix ValueError and KeyError while quering miners. Closes #113, Closes #124
+
+### New Features
+- :heavy_plus_sign: Add .flaskenv settings file
+- :star: new(menu): Add main menu bar. Closes #122
+- :up: update(hashrate): Add hashrate conversion support for Equihash algorithm. Closes #123
+- :wrench: Load .env settings if exist
+- :star: add(login): Add login screen. Closes #71
+- :sparkles: Make miner link go directly to the status page. Closes #78
+
+### Added
+- :license: Add license to pycgminer.py
+- :pencil: docs(readme): Update commands
+- :up: update(db): Add support for Antminer T9+. Closes #87
+- :up: update(db): Add support for Antminer X3. Closes #96
+- :up: update(db): Add support for Antminer B3. Closes #100
+- :pencil: docs(run): Add host and port parameters
+- :up: update(db): Add support for Antminer Z9 mini. Closes #121
+- :up: update(db): Add support for Antminer E3. Closes #113
+
+### Changed
+- :shirt: refactor(lib): Move lib folder
+- :shirt: refactor(config): Move configurations to its own file
+- :shirt: refactor(app): Organize files into blueprints
+- :wrench: Rename manager.py to manage.py
+- :up: update(requirements): Remove Flask-Script
+- :up: Update Flask
+
 ## [v0.4.0] - 2018-02-28
 
 ### Bug fixes
@@ -113,7 +150,8 @@ Updated supported miner models, requirements and installation instructions. Adde
 - :star: Get in-app notifications about miner errors (needs refresh)
 - :star: Log errors to file
 
-[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/anselal/antminer-monitor/compare/v0.5.0...HEAD
+[v0.5.0]: https://github.com/anselal/antminer-monitor/compare/v0.4.0...v0.5.0
 [v0.4.0]: https://github.com/anselal/antminer-monitor/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/anselal/antminer-monitor/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/anselal/antminer-monitor/compare/v0.1.1...v0.2.0
