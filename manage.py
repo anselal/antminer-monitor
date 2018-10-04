@@ -1,10 +1,13 @@
+import subprocess
+
 from flask.cli import FlaskGroup
+
 from antminermonitor.app import create_app
-from antminermonitor.extensions import db
 from antminermonitor.blueprints.asicminer.models.miner import Miner
 from antminermonitor.blueprints.asicminer.models.miner_model import MinerModel
 from antminermonitor.blueprints.asicminer.models.settings import Settings
 from antminermonitor.blueprints.user.models import User
+from antminermonitor.extensions import db
 
 cli = FlaskGroup(create_app=create_app)
 
@@ -280,6 +283,19 @@ def create_admin():
         print("[INFO] Admin user already exists.")
     else:
         print("[INFO] Something went wrong.")
+
+
+@cli.command()
+def format():
+    """Runs the yapf and isort formatters over the project."""
+    isort = 'isort -rc *.py antminermonitor/'
+    yapf = 'yapf -r -i *.py antminermonitor/'
+
+    print('Running {}'.format(isort))
+    subprocess.call(isort, shell=True)
+
+    print('Running {}'.format(yapf))
+    subprocess.call(yapf, shell=True)
 
 
 if __name__ == "__main__":
