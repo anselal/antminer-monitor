@@ -56,13 +56,13 @@ sudo easy_install pip
   5. Install requirements (Mac users don't forget `sudo`)
 ```sh
 python -m pip install -r requirements.txt
-python manage.py create_db
+python manage.py create-db
 ```
 
 ### Login Page
   1. Create admin user
 ```sh
-python manage.py create_admin
+python manage.py create-admin
 ```
 
 Default creadentials are `username: admin` - `password: antminermonitor`. You can change the password from the settings menu.
@@ -93,7 +93,7 @@ python -m pip install -r requirements.txt
 ```
  - Update your database. This ensures that your installed version supports the latest miner models and configuration settings, while keeping your added miners in the Database.
 ```sh
-python manage.py update_db
+python manage.py update-db
 ```
 
 In case you didn't already do so, please follow the "Login" guide above to create the admin user.
