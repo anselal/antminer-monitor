@@ -21,7 +21,7 @@ def miners():
     # Init variables
     start = time.clock()
     miners = Miner.query.all()
-    models = MinerModel.query.all()
+    models = MinerModel.query.order_by(MinerModel.model).all()
     active_miners = []
     inactive_miners = []
     workers = {}
