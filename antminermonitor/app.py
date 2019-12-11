@@ -8,7 +8,6 @@ from antminermonitor.extensions import (
     migrate,
 )
 from antminermonitor.blueprints.asicminer.models.miner import Miner
-from antminermonitor.blueprints.asicminer.models.miner_model import MinerModel
 from antminermonitor.blueprints.asicminer.models.settings import Settings
 from antminermonitor.blueprints.user.models import User
 
@@ -41,8 +40,7 @@ def create_app(script_info=None, settings_override=None):
 
     @app.shell_context_processor
     def make_shell_context():
-        return dict(app=app, db=db, Miner=Miner, MinerModel=MinerModel,
-                    Settings=Settings, User=User)
+        return dict(app=app, db=db, Miner=Miner, Settings=Settings, User=User)
 
     return app
 

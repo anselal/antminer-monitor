@@ -1,7 +1,7 @@
 {% extends 'layouts/base.html' %}
 
 {% block meta_description %}
-Antminer Monitor, antminer, monitor, antmon, bitmain, bitcoin, litecoin, dash, 
+Antminer Monitor, antminer, monitor, antmon, bitmain, bitcoin, litecoin, dash,
 cryptocurrency, crypto, miner, mine, mining
 {% endblock %}
 {% block title %}Antminer Monitor {{ version }}{% endblock %}
@@ -31,8 +31,8 @@ cryptocurrency, crypto, miner, mine, mining
                   <div>
                       <select required name="model_id">
                           <option disabled selected value> -- select an option --</option>
-                          {%- for model in models %}
-                              <option value="{{ model.id }}">{{ model.model }} - {{ model.description }}</option>
+                          {%- for id, model in models.items() %}
+                              <option value="{{ id }}">{{ model.get('description') }}</option>
                           {%- endfor %}
                       </select>
                   </div>
@@ -71,6 +71,7 @@ cryptocurrency, crypto, miner, mine, mining
         {%- endfor %}
     {%- endif %}
 {%- endwith %}
+<br>
 
 {%- if inactive_miners %}
     <fieldset name="inactive_miner_list">
@@ -86,7 +87,7 @@ cryptocurrency, crypto, miner, mine, mining
             {%- for inactive_miner in inactive_miners|sort(attribute='ip') %}
                 <tr>
                     <td><a target="_blank" href="http://{{ inactive_miner.ip }}/cgi-bin/minerStatus.cgi">{{ inactive_miner.ip }}</a></td>
-                    <td>{{ inactive_miner.model.model }}</td>
+                    <td>{{ inactive_miner.model_id }}</td>
                     <td>{{ inactive_miner.remarks }}</td>
                     <td>Error: Check connection or IP Address</td>
                     <td><a href={{ url_for('antminer.delete_miner', id=inactive_miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
@@ -121,7 +122,7 @@ cryptocurrency, crypto, miner, mine, mining
             <tr{%- if active_miner.ip in miner_errors %} class="error"{%- endif %}>
                 <td><a target="_blank" href="http://{{ active_miner.ip }}/cgi-bin/minerStatus.cgi">{{ active_miner.ip }}</a></td>
                 <td>{{ workers[active_miner.ip] }}</td>
-                <td title="{{ active_miner.model.description }}">{{ active_miner.model.model }}</td>
+                <td title="{{ models.get(active_miner.model_id).get('description') }}">{{ models.get(active_miner.model_id).get('model') }}</td>
                 <td>{{ active_miner.remarks }}</td>
                 <td>{{ miner_chips[active_miner.ip]['status']['Os'] }}</td>
                 <td>{{ miner_chips[active_miner.ip]['status']['Xs'] }}</td>

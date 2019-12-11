@@ -1,0 +1,114 @@
+{
+    "Antminer A3": {
+        "id": "Antminer A3",
+        "model": "A3",
+        "chips": "60,60,60",
+        "temp_keys": "temp2_",
+        "unit": "GH/s",
+        "description": "Bitmain AntMiner A3 Siacoin Miner 815 GH/s"
+    },
+    "Antminer D3": {
+        "id": "Antminer D3",
+        "model": "D3",
+        "chips": "60,60,60",
+        "temp_keys": "temp2_",
+        "unit": "MH/s",
+        "description": "Bitmain AntMiner D3 DASH Miner 17 GH/s"
+    },
+    "Antminer E3": {
+        "id": "Antminer E3",
+        "model": "E3",
+        "chips": "2,2,2,2,2,2,2,2,2",
+        "temp_keys": "temp2_",
+        "unit": "MH/s",
+        "description": "Bitmain AntMiner E3 Ethash Miner 190 MH/s"
+    },
+    "Antminer L3": {
+        "id": "Antminer L3",
+        "model": "L3",
+        "chips": "36,36,36,36",
+        "temp_keys": "temp2_",
+        "unit": "MH/s",
+        "description": "Bitmain AntMiner L3 Litecoin Miner 250 MH/s"
+    },
+    "Antminer L3+": {
+        "id": "Antminer L3+",
+        "model": "L3+",
+        "chips": "72,72,72,72",
+        "temp_keys": "temp2_",
+        "unit": "MH/s",
+        "description": "Bitmain AntMiner L3+ Litecoin Miner 504 MH/s"
+    },
+    "Antminer L3++": {
+        "id": "Antminer L3++",
+        "model": "L3++",
+        "chips": "72,72,72,72",
+        "temp_keys": "temp2_",
+        "unit": "MH/s",
+        "description": "Bitmain AntMiner L3+ Litecoin Miner 580 MH/s"
+    },
+    "Antminer R4": {
+        "id": "Antminer R4",
+        "model": "R4",
+        "chips": "63,63",
+        "temp_keys": "temp2_",
+        "unit": "TH/s",
+        "description": "Bitmain AntMiner R4 Bitcoin Miner 8 TH/s"
+    },
+    "Antminer S7": {
+        "id": "Antminer S7",
+        "model": "S7",
+        "chips": "45,45,45",
+        "temp_keys": "temp",
+        "unit": "GH/s",
+        "description": "Bitmain AntMiner S7 Bitcoin Miner 4.5 TH/s"
+    },
+    "Antminer S9": {
+        "id": "Antminer S9",
+        "model": "S9",
+        "chips": "63,63,63",
+        "temp_keys": "temp2_",
+        "unit": "GH/s",
+        "description": "Bitmain AntMiner S9 Bitcoin Miner 13.5 TH/s"
+    },
+    "Antminer T9": {
+        "id": "Antminer T9",
+        "model": "T9",
+        "chips": "57,57,57",
+        "temp_keys": "temp2_",
+        "unit": "GH/s",
+        "description": "Bitmain AntMiner T9 Bitcoin Miner 12.5 TH/s"
+    },
+    "Antminer T9+": {
+        "id": "Antminer T9+",
+        "model": "T9+",
+        "chips": "54,54,54",
+        "temp_keys": "temp2_",
+        "unit": "GH/s",
+        "description": "Bitmain AntMiner T9+ Bitcoin Miner 10.5 TH/s"
+    },
+    "Antminer V9": {
+        "id": "Antminer V9",
+        "model": "V9",
+        "chips": "45,45,45",
+        "temp_keys": "temp2_",
+        "unit": "GH/s",
+        "description": "Bitmain AntMiner V9 Bitcoin Miner 4 TH/s"
+    },
+    "Antminer X3": {
+        "id": "Antminer X3",
+        "model": "X3",
+        "chips": "60,60,60",
+        "temp_keys": "temp2_",
+        "unit": "KH/s",
+        "description": "Bitmain AntMiner X3 CryptoNight Miner 220 KH/s"
+    },
+    "Antminer Z9mini": {
+        "id": "Antminer Z9mini",
+        "model": "Z9 mini",
+        "chips": "4,4,4",
+        "temp_keys": "temp2_",
+        "unit": "KSol/s",
+        "description": "Bitmain AntMiner Z9 mini Equihash Miner 10 KSol/s"
+    }
+}

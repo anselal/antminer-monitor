@@ -5,6 +5,13 @@ from dotenv import load_dotenv
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 load_dotenv(os.path.join(basedir, '.env'))
 
+import json
+
+with open("config/models.json","r") as json_data:
+    models = json.load(json_data)
+
+MODELS = models
+
 __VERSION__ = '0.5.0'
 
 DEBUG = True

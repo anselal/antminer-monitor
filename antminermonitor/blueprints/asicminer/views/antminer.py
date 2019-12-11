@@ -7,8 +7,9 @@ from flask import (Blueprint, current_app, flash, redirect, render_template,
 from flask_login import login_required
 from sqlalchemy.exc import IntegrityError
 
-from antminermonitor.blueprints.asicminer.models import Miner, MinerModel
+from antminermonitor.blueprints.asicminer.models import Miner
 from antminermonitor.extensions import db
+from config.settings import MODELS
 from lib.pycgminer import get_pools, get_stats, get_summary
 from lib.util_hashrate import update_unit_and_value
 
@@ -21,7 +22,6 @@ def miners():
     # Init variables
     start = time.clock()
     miners = Miner.query.all()
-    models = MinerModel.query.order_by(MinerModel.model).all()
     active_miners = []
     inactive_miners = []
     workers = {}
@@ -31,60 +31,10 @@ def miners():
     hash_rates = {}
     hw_error_rates = {}
     uptimes = {}
-    total_hash_rate_per_model = {
-        "L3+": {
-            "value": 0,
-            "unit": "MH/s"
-        },
-        "S7": {
-            "value": 0,
-            "unit": "GH/s"
-        },
-        "S9": {
-            "value": 0,
-            "unit": "GH/s"
-        },
-        "D3": {
-            "value": 0,
-            "unit": "MH/s"
-        },
-        "T9": {
-            "value": 0,
-            "unit": "GH/s"
-        },
-        "T9+": {
-            "value": 0,
-            "unit": "GH/s"
-        },
-        "A3": {
-            "value": 0,
-            "unit": "GH/s"
-        },
-        "L3": {
-            "value": 0,
-            "unit": "MH/s"
-        },
-        "R4": {
-            "value": 0,
-            "unit": "TH/s"
-        },
-        "V9": {
-            "value": 0,
-            "unit": "GH/s"
-        },
-        "X3": {
-            "value": 0,
-            "unit": "KH/s"
-        },
-        "Z9 mini": {
-            "value": 0,
-            "unit": "KSol/s"
-        },
-        "E3": {
-            "value": 0,
-            "unit": "MH/s"
-        },
-    }
+    total_hash_rate_per_model = {}
+
+    for id, miner in MODELS.items():
+        total_hash_rate_per_model[id] = {"value": 0, "unit": miner.get('unit')}
 
     errors = False
     miner_errors = {}
@@ -128,13 +78,13 @@ def miners():
             _dash_chips = sum(_dash_chips)
             # Get total number of chips according to miner's model
             # convert miner.model.chips to int list and sum
-            chips_list = [int(y) for y in str(miner.model.chips).split(',')]
+            chips_list = [int(y) for y in str(MODELS.get(miner.model_id).get('chips')).split(',')]
             total_chips = sum(chips_list)
             # Get the temperatures of the miner according to miner's model
             temps = [
                 int(miner_stats['STATS'][1][temp]) for temp in sorted(
                     miner_stats['STATS'][1].keys(), key=lambda x: str(x))
-                if re.search(miner.model.temp_keys + '[0-9]', temp)
+                if re.search(MODELS.get(miner.model_id).get('temp_keys') + '[0-9]', temp)
                 if miner_stats['STATS'][1][temp] != 0
             ]
             # Get fan speeds
@@ -178,11 +128,11 @@ def miners():
             temperatures.update({miner.ip: temps})
             fans.update({miner.ip: {"speeds": fan_speeds}})
             value, unit = update_unit_and_value(
-                ghs5s, total_hash_rate_per_model[miner.model.model]['unit'])
+                ghs5s, total_hash_rate_per_model[miner.model_id]['unit'])
             hash_rates.update({miner.ip: "{:3.2f} {}".format(value, unit)})
             hw_error_rates.update({miner.ip: hw_error_rate})
             uptimes.update({miner.ip: uptime})
-            total_hash_rate_per_model[miner.model.model]["value"] += ghs5s
+            total_hash_rate_per_model[miner.model_id]["value"] += ghs5s
             active_miners.append(miner)
 
             # Flash error messages
@@ -197,7 +147,7 @@ def miners():
                 error_message = (
                     "[ERROR] ASIC chips are missing from miner "
                     "'{}'. Your Antminer '{}' has '{}/{} chips'.").format(
-                        miner.ip, miner.model.model, Os + Xs, total_chips)
+                        miner.ip, miner.model_id, Os + Xs, total_chips)
                 current_app.logger.error(error_message)
                 flash(error_message, "error")
                 errors = True
@@ -262,7 +212,7 @@ def miners():
     return render_template(
         'asicminer/home.html',
         version=current_app.config['__VERSION__'],
-        models=models,
+        models=MODELS,
         active_miners=active_miners,
         inactive_miners=inactive_miners,
         workers=workers,
