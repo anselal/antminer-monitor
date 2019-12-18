@@ -121,13 +121,14 @@ class ASIC_ANTMINER():
 
             # Get HW Errors
             try:
-                self.hw_error_rate = miner_stats['STATS'][1][
-                    'Device Hardware%']
-            except KeyError as k:
-                # Probably the miner is an Antminer E3
+                # Probably the miner is an Antminer E3 or S17
                 miner_summary = get_summary(self.ip)
-                self.hw_error_rate = miner_summary['SUMMARY'][0][
-                    'Device Hardware%']
+                self.hw_error_rate = miner_summary['SUMMARY'][0]['Device Hardware%']
+            except KeyError as k:
+                # self.hw_error_rate = miner_stats['STATS'][1]['Device Hardware%']
+                # ask again
+                miner_summary = get_summary(self.ip)
+                self.hw_error_rate = miner_summary['SUMMARY'][0]['Device Hardware%']
             except ValueError as v:
                 self.hw_error_rate = 0
 
