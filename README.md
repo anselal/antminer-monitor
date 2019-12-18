@@ -79,25 +79,6 @@ Feel free to change the host (-h) and port (-p) parameters as needed by your set
 
 You can set the host `(-h)` and port `(-p)` parameters in your .flaskenv file to avoid typing them when starting the app.
 
-### Upgrade
-
-##### BEFORE YOU BEGIN: **You can always do a fresh install to upgrade to a newer version but you will have to add your miners again**
- To upgrade AntminerMonitor to a newer version follow the steps below:
-
- - Do a backup of your database (file: `antminermonitor/db/app.db`) in case something goes wrong
- - Download the latest version of #AntminerMonitor from https://github.com/anselal/antminer-monitor/archive/master.zip
- - Unzip and replace all the files in your current installation
- - Install requirements in case we added something new:
-```sh
-python -m pip install -r requirements.txt
-```
- - Update your database. This ensures that your installed version supports the latest miner models and configuration settings, while keeping your added miners in the Database.
-```sh
-python manage.py update_db
-```
-
-In case you didn't already do so, please follow the "Login" guide above to create the admin user.
-
 ### Donations
 
   - BTC: `1HYCBovF6mqqKMyG4m2DQxXpdKmogK4Wuw`
