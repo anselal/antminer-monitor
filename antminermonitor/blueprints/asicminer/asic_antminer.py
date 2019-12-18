@@ -35,16 +35,17 @@ class ASIC_ANTMINER():
         if miner_stats['STATUS'][0]['STATUS'] == 'error':
             self.is_inactive = True
         else:
-            # Get worker name
-            miner_pools = get_pools(self.ip)
-            active_pool = [
-                pool for pool in miner_pools['POOLS'] if pool['Stratum Active']
-            ]
+            try:
+                # Get worker name
+                miner_pools = get_pools(self.ip)
+                active_pool = [
+                    pool for pool in miner_pools['POOLS'] if pool['Stratum Active']
+                ]
+            except Exception as k:
+                active_pool = []
             try:
                 self.worker = active_pool[0]['User']
-            except KeyError as k:
-                self.worker = ""
-            except ValueError as v:
+            except Exception as e:
                 self.worker = ""
 
             # Get miner's ASIC chips
