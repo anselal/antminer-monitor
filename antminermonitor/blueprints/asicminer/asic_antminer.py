@@ -111,7 +111,7 @@ class ASIC_ANTMINER():
             except KeyError as k:
                 miner_summary = get_summary(self.ip)
                 self.hash_rate_ghs5s = float(
-                    str(miner_summary['SUMAMRY'][0]['GHS 5s']))
+                    str(miner_summary['SUMMARY'][0]['GHS 5s']))
 
             # Normalize hashrate
             new_value, new_unit = update_unit_and_value(
