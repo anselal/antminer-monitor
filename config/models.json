@@ -103,6 +103,14 @@
         "unit": "GH/s",
         "description": "Bitmain AntMiner T9+ Bitcoin Miner 10.5 TH/s"
     },
+    "Antminer T17": {
+        "id": "Antminer T17",
+        "model": "T17",
+        "chips": "30,30,30",
+        "temp_keys": "temp2_",
+        "unit": "GH/s",
+        "description": "Bitmain AntMiner T17 Bitcoin Miner 40 TH/s"
+    },
     "Antminer V9": {
         "id": "Antminer V9",
         "model": "V9",
