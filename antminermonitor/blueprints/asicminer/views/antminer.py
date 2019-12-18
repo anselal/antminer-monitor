@@ -7,10 +7,10 @@ from flask import (Blueprint, current_app, flash, redirect, render_template,
 from flask_login import login_required
 from sqlalchemy.exc import IntegrityError
 
+from antminermonitor.blueprints.asicminer.asic_antminer import ASIC_ANTMINER
 from antminermonitor.blueprints.asicminer.models import Miner
 from antminermonitor.extensions import db
 from config.settings import MODELS
-from lib.pycgminer import get_pools, get_stats, get_summary
 from lib.util_hashrate import update_unit_and_value
 
 antminer = Blueprint('antminer', __name__, template_folder='../templates')
@@ -24,162 +24,30 @@ def miners():
     miners = Miner.query.all()
     active_miners = []
     inactive_miners = []
-    workers = {}
-    miner_chips = {}
-    temperatures = {}
-    fans = {}
-    hash_rates = {}
-    hw_error_rates = {}
-    uptimes = {}
+    warnings = []
+    errors = []
+
     total_hash_rate_per_model = {}
 
     for id, miner in MODELS.items():
         total_hash_rate_per_model[id] = {"value": 0, "unit": miner.get('unit')}
 
-    errors = False
-    miner_errors = {}
-
+    # running single threaded
     for miner in miners:
-        miner_stats = get_stats(miner.ip)
-        # if miner not accessible
-        if miner_stats['STATUS'][0]['STATUS'] == 'error':
-            errors = True
-            inactive_miners.append(miner)
+        antminer = ASIC_ANTMINER(miner)
+
+        if antminer.is_inactive:
+                inactive_miners.append(antminer)
         else:
-            # Get worker name
-            miner_pools = get_pools(miner.ip)
-            active_pool = [
-                pool for pool in miner_pools['POOLS'] if pool['Stratum Active']
-            ]
-            try:
-                worker = active_pool[0]['User']
-            except KeyError as k:
-                worker = ""
-            except ValueError as v:
-                worker = ""
-            # Get miner's ASIC chips
-            asic_chains = [
-                miner_stats['STATS'][1][chain]
-                for chain in miner_stats['STATS'][1].keys()
-                if "chain_acs" in chain
-            ]
-            # count number of working chips
-            o = [str(o).count('o') for o in asic_chains]
-            Os = sum(o)
-            # count number of defective chips
-            X = [str(x).count('x') for x in asic_chains]
-            C = [str(x).count('C') for x in asic_chains]
-            B = [str(x).count('B') for x in asic_chains]
-            Xs = sum(X)
-            Bs = sum(B)
-            Cs = sum(C)
-            # get number of in-active chips
-            _dash_chips = [str(x).count('-') for x in asic_chains]
-            _dash_chips = sum(_dash_chips)
-            # Get total number of chips according to miner's model
-            # convert miner.model.chips to int list and sum
-            chips_list = [int(y) for y in str(MODELS.get(miner.model_id).get('chips')).split(',')]
-            total_chips = sum(chips_list)
-            # Get the temperatures of the miner according to miner's model
-            temps = [
-                int(miner_stats['STATS'][1][temp]) for temp in sorted(
-                    miner_stats['STATS'][1].keys(), key=lambda x: str(x))
-                if re.search(MODELS.get(miner.model_id).get('temp_keys') + '[0-9]', temp)
-                if miner_stats['STATS'][1][temp] != 0
-            ]
-            # Get fan speeds
-            fan_speeds = [
-                miner_stats['STATS'][1][fan] for fan in sorted(
-                    miner_stats['STATS'][1].keys(), key=lambda x: str(x))
-                if re.search("fan" + '[0-9]', fan)
-                if miner_stats['STATS'][1][fan] != 0
-            ]
-            # Get GH/S 5s
-            try:
-                ghs5s = float(str(miner_stats['STATS'][1]['GHS 5s']))
-            except ValueError as v:
-                ghs5s = 0
-            except KeyError as k:
-                miner_summary = get_summary(miner.ip)
-                ghs5s = float(str(miner_summary['SUMAMRY'][0]['GHS 5s']))
-            # Get HW Errors
-            try:
-                hw_error_rate = miner_stats['STATS'][1]['Device Hardware%']
-            except KeyError as k:
-                # Probably the miner is an Antminer E3
-                miner_summary = get_summary(miner.ip)
-                hw_error_rate = miner_summary['SUMMARY'][0]['Device Hardware%']
-            except ValueError as v:
-                hw_error_rate = 0
-            # Get uptime
-            uptime = timedelta(seconds=miner_stats['STATS'][1]['Elapsed'])
-            #
-            workers.update({miner.ip: worker})
-            miner_chips.update({
-                miner.ip: {
-                    'status': {
-                        'Os': Os,
-                        'Xs': Xs,
-                        '-': _dash_chips
-                    },
-                    'total': total_chips,
-                }
-            })
-            temperatures.update({miner.ip: temps})
-            fans.update({miner.ip: {"speeds": fan_speeds}})
-            value, unit = update_unit_and_value(
-                ghs5s, total_hash_rate_per_model[miner.model_id]['unit'])
-            hash_rates.update({miner.ip: "{:3.2f} {}".format(value, unit)})
-            hw_error_rates.update({miner.ip: hw_error_rate})
-            uptimes.update({miner.ip: uptime})
-            total_hash_rate_per_model[miner.model_id]["value"] += ghs5s
-            active_miners.append(miner)
+            active_miners.append(antminer)
+            for warning in antminer.warnings:
+                warnings.append(warning)
+            for error in antminer.errors:
+                errors.append(error)
+            total_hash_rate_per_model[
+                antminer.model_id]["value"] += antminer.hash_rate_ghs5s
 
-            # Flash error messages
-            if Xs > 0:
-                error_message = ("[WARNING] '{}' chips are defective on "
-                                 "miner '{}'.").format(Xs, miner.ip)
-                current_app.logger.warning(error_message)
-                flash(error_message, "warning")
-                errors = True
-                miner_errors.update({miner.ip: error_message})
-            if Os + Xs < total_chips:
-                error_message = (
-                    "[ERROR] ASIC chips are missing from miner "
-                    "'{}'. Your Antminer '{}' has '{}/{} chips'.").format(
-                        miner.ip, miner.model_id, Os + Xs, total_chips)
-                current_app.logger.error(error_message)
-                flash(error_message, "error")
-                errors = True
-                miner_errors.update({miner.ip: error_message})
-            if Bs > 0:
-                # flash an info message. Probably the E3 is still warming up
-                # error_message = (
-                #    "[INFO] Miner '{}' is still warming up").format(miner.ip)
-                # current_app.logger.error(error_message)
-                # flash(error_message, "info")
-                pass
-            if Cs > 0:
-                # flask an info message. Probably the E3 is still warming up
-                # error_message = (
-                #    "[INFO] Miner '{}' is still warming up").format(miner.ip)
-                # current_app.logger.error(error_message)
-                # flash(error_message, "info")
-                pass
-            if temps:
-                if max(temps) >= 80:
-                    error_message = ("[WARNING] High temperatures on "
-                                     "miner '{}'.").format(miner.ip)
-                    current_app.logger.warning(error_message)
-                    flash(error_message, "warning")
-            if not temps:
-                temperatures.update({miner.ip: 0})
-                error_message = ("[ERROR] Could not retrieve temperatures "
-                                 "from miner '{}'.").format(miner.ip)
-                current_app.logger.warning(error_message)
-                flash(error_message, "error")
-
-    # Flash success/info message
+    # Flash notifications
     if not miners:
         error_message = ("[INFO] No miners added yet. "
                          "Please add miners using the above form.")
@@ -190,6 +58,14 @@ def miners():
                          "No errors found.")
         current_app.logger.info(error_message)
         flash(error_message, "info")
+
+    for error in errors:
+        current_app.logger.error(error)
+        flash(error, "error")
+
+    for warning in warnings:
+        current_app.logger.error(warning)
+        flash(warning, "warning")
 
     # flash("[INFO] Check chips on your miner", "info")
     # flash("[SUCCESS] Miner added successfully", "success")
@@ -211,21 +87,28 @@ def miners():
     loading_time = end - start
     return render_template(
         'asicminer/home.html',
-        version=current_app.config['__VERSION__'],
-        models=MODELS,
+        MODELS=MODELS,
         active_miners=active_miners,
         inactive_miners=inactive_miners,
-        workers=workers,
-        miner_chips=miner_chips,
-        temperatures=temperatures,
-        fans=fans,
-        hash_rates=hash_rates,
-        hw_error_rates=hw_error_rates,
-        uptimes=uptimes,
-        total_hash_rate_per_model=total_hash_rate_per_model_temp,
         loading_time=loading_time,
-        miner_errors=miner_errors,
-    )
+        total_hash_rate_per_model=total_hash_rate_per_model_temp)
+    # return render_template(
+    #     'asicminer/home.html',
+    #     version=current_app.config['__VERSION__'],
+    #     models=MODELS,
+    #     active_miners=active_miners,
+    #     inactive_miners=inactive_miners,
+    #     workers=workers,
+    #     miner_chips=miner_chips,
+    #     temperatures=temperatures,
+    #     fans=fans,
+    #     hash_rates=hash_rates,
+    #     hw_error_rates=hw_error_rates,
+    #     uptimes=uptimes,
+    #     total_hash_rate_per_model=total_hash_rate_per_model_temp,
+    #     loading_time=loading_time,
+    #     miner_errors=miner_errors,
+    # )
 
 
 @antminer.route('/add', methods=['POST'])
@@ -240,8 +123,9 @@ def add_miner():
     #    return "IP Address already added"
 
     try:
-        miner = Miner(
-            ip=miner_ip, model_id=miner_model_id, remarks=miner_remarks)
+        miner = Miner(ip=miner_ip,
+                      model_id=miner_model_id,
+                      remarks=miner_remarks)
         db.session.add(miner)
         db.session.commit()
         flash("Miner with IP Address {} added successfully".format(miner.ip),

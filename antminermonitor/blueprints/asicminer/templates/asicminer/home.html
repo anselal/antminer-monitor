@@ -31,7 +31,7 @@ cryptocurrency, crypto, miner, mine, mining
                   <div>
                       <select required name="model_id">
                           <option disabled selected value> -- select an option --</option>
-                          {%- for id, model in models.items() %}
+                          {%- for id, model in MODELS.items() %}
                               <option value="{{ id }}">{{ model.get('description') }}</option>
                           {%- endfor %}
                       </select>
@@ -119,21 +119,21 @@ cryptocurrency, crypto, miner, mine, mining
             <th>Remove</th>
         </tr>
         {%- for active_miner in active_miners|sort(attribute='ip') %}
-            <tr{%- if active_miner.ip in miner_errors %} class="error"{%- endif %}>
+            <tr {%- if active_miner.errors %} class="error"{%- endif %}>
                 <td><a target="_blank" href="http://{{ active_miner.ip }}/cgi-bin/minerStatus.cgi">{{ active_miner.ip }}</a></td>
-                <td>{{ workers[active_miner.ip] }}</td>
-                <td title="{{ models.get(active_miner.model_id).get('description') }}">{{ models.get(active_miner.model_id).get('model') }}</td>
+                <td>{{ active_miner.worker }}</td>
+                <td title="{{ MODELS.get(active_miner.model_id).get('description') }}">{{ active_miner.model_id }}</td>
                 <td>{{ active_miner.remarks }}</td>
-                <td>{{ miner_chips[active_miner.ip]['status']['Os'] }}</td>
-                <td>{{ miner_chips[active_miner.ip]['status']['Xs'] }}</td>
-                <td>{{ miner_chips[active_miner.ip]['status']['-'] }}</td>
-                <td>{{ temperatures[active_miner.ip] }}</td>
-                <td>{{ fans[active_miner.ip].speeds }}</td>
-                <td>{{ hash_rates[active_miner.ip] }}</td>
-                <td>{{ hw_error_rates[active_miner.ip] }}</td>
-                <td>{{ uptimes[active_miner.ip] }}</td>
-                <td title="{%- if active_miner.ip in miner_errors %}{{ miner_errors[active_miner.ip] }}{%- endif %}">
-                    {%- if active_miner.ip in miner_errors %}Check your miner{%- else %}OK{%- endif %}</td>
+                <td>{{ active_miner.chips['Os'] }}</td>
+                <td>{{ active_miner.chips['Xs'] }}</td>
+                <td>{{ active_miner.chips['-'] }}</td>
+                <td>{{ active_miner.temperatures }}</td>
+                <td>{{ active_miner.fan_speeds }}</td>
+                <td>{{ active_miner.normalized_hash_rate_ghs5s }}</td>
+                <td>{{ active_miner.hw_error_rate }}</td>
+                <td>{{ active_miner.uptime }}</td>
+                <td title="{%- if active_miner.errors %}{{ active_miner.errors }}{%- else %}OK{%- endif %}">
+                    {%- if active_miner.errors %}Check your miner{%- else %}OK{%- endif %}</td>
                 <!--<td><a target="_blank" href="/{{ active_miner.ip }}/summary">Summary</a> |
                     <a target="_blank" href="/{{ active_miner.ip }}/pools">Pools</a> |
                     <a target="_blank" href="/{{ active_miner.ip }}/stats">Stats</a></td>-->
