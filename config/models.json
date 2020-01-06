@@ -45,7 +45,7 @@
         "chips": "72,72,72,72",
         "temp_keys": "temp2_",
         "unit": "MH/s",
-        "description": "Bitmain AntMiner L3+ Litecoin Miner 580 MH/s"
+        "description": "Bitmain AntMiner L3++ Litecoin Miner 580 MH/s"
     },
     "Antminer R4": {
         "id": "Antminer R4",
