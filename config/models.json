@@ -134,5 +134,13 @@
         "temp_keys": "temp2_",
         "unit": "KSol/s",
         "description": "Bitmain AntMiner Z9 mini Equihash Miner 10 KSol/s"
+    },
+    "Antminer Z11": {
+        "id": "Antminer Z11",
+        "model": "Z11",
+        "chips": "3,3,3",
+        "temp_keys": "temp2_",
+        "unit": "KSol/s",
+        "description": "Bitmain AntMiner Z11 Equihash Miner 135 KSol/s"
     }
 }
