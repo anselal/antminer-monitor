@@ -105,6 +105,11 @@ You can set the host `(-h)` and port `(-p)` parameters in your .flaskenv file to
 
 [![bitradio]](http://bitrad.io/?ref=59452)
 
+- Get paid to search
+
+[![presearch]](https://www.presearch.org/signup?rid=113267)
+
 [twitter]: https://img.shields.io/twitter/follow/AntminerMonitor.svg?style=social
 [ledger]: https://www.ledgerwallet.com/images/promo/nano-s/ledger_nano-s_7-2-8x9-0.jpg
 [bitradio]: http://bitrad.io/images/BRO728x90.gif
+[presearch]: https://www.presearch.org/images/rf/ban-4.jpg
