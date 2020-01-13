@@ -141,6 +141,8 @@ def add_miner():
 @login_required
 def delete_miner(id):
     miner = Miner.query.filter_by(id=int(id)).first()
-    db.session.delete(miner)
-    db.session.commit()
+    if miner:
+        db.session.delete(miner)
+        db.session.commit()
+        flash("Miner {} removed successfully".format(miner_ip), "info")
     return redirect(url_for('antminer.miners'))
