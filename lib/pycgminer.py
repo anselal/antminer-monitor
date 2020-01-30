@@ -59,7 +59,9 @@ class CgminerAPI(object):
             # the null byte makes json decoding unhappy
             # also add a comma on the output of the `stats` command by
             # replacing '}{' with '},{'
-            return json.loads(received[:-1].replace('}{', '},{'))
+            if received:
+                return json.loads(received[:-1].replace('}{', '},{'))
+            return dict({'STATUS': [{'STATUS': 'error'}]})
         finally:
             # sock.shutdown(socket.SHUT_RDWR)
             sock.close()
