@@ -90,7 +90,7 @@ cryptocurrency, crypto, miner, mine, mining
                     <td>{{ inactive_miner.model_id }}</td>
                     <td>{{ inactive_miner.remarks }}</td>
                     <td>Error: Check connection or IP Address</td>
-                    <td><a href={{ url_for('antminer.delete_miner', id=inactive_miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
+                    <td><a href={{ url_for('antminer.delete_miner', id=inactive_miner.id) }} style="text-decoration:none">&#10060;</a></td>
                 </tr>
             {%- endfor %}
         </table>
@@ -137,7 +137,7 @@ cryptocurrency, crypto, miner, mine, mining
                 <!--<td><a target="_blank" href="/{{ active_miner.ip }}/summary">Summary</a> |
                     <a target="_blank" href="/{{ active_miner.ip }}/pools">Pools</a> |
                     <a target="_blank" href="/{{ active_miner.ip }}/stats">Stats</a></td>-->
-                <td><a href={{ url_for('antminer.delete_miner', id=active_miner.id) }}><img src="/static/images/assets/remove.png"></img></a></td>
+                <td><a href={{ url_for('antminer.delete_miner', id=active_miner.id) }} style="text-decoration:none">&#10060;</a></td>
             </tr>
         {%- endfor %}
     </table>
