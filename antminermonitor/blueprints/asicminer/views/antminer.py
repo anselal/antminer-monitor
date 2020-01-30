@@ -144,5 +144,5 @@ def delete_miner(id):
     if miner:
         db.session.delete(miner)
         db.session.commit()
-        flash("Miner {} removed successfully".format(miner_ip), "info")
+        flash("Miner {} removed successfully".format(miner.ip), "info")
     return redirect(url_for('antminer.miners'))
