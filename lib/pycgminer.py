@@ -54,7 +54,7 @@ class CgminerAPI(object):
                 sock.send(bytes(json.dumps(payload), 'utf-8'))
             received = self._receive(sock)
         except Exception as e:
-            return dict({'STATUS': [{'STATUS': 'error', 'description': e}]})
+            return dict({'STATUS': [{'STATUS': 'error', 'description': "{}".format(e)}]})
         else:
             # the null byte makes json decoding unhappy
             # also add a comma on the output of the `stats` command by
