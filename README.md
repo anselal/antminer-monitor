@@ -88,6 +88,12 @@ Feel free to change the host (-h) and port (-p) parameters as needed by your set
 
 You can set the host `(-h)` and port `(-p)` parameters in your .flaskenv file to avoid typing them when starting the app.
 
+## Development vs. Production mode
+
+AntminerMonitor runs by default in development mode, using Flask's development server. In development mode, this server provides an interactive debugger and will reload when code is changed.
+
+To switch to production mode, edit `.flaskenv` and set `FLASK_ENV="production"`
+
 ## Donations
 
 - BTC: `1HYCBovF6mqqKMyG4m2DQxXpdKmogK4Wuw`
