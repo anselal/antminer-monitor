@@ -1,4 +1,6 @@
+import concurrent.futures
 import re
+import sys
 import time
 from datetime import timedelta
 
@@ -10,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from antminermonitor.blueprints.asicminer.asic_antminer import ASIC_ANTMINER
 from antminermonitor.blueprints.asicminer.models import Miner
 from antminermonitor.extensions import db
-from config.settings import MODELS
+from config.settings import MODELS, NUM_THREADS
 from lib.util_hashrate import update_unit_and_value
 
 antminer = Blueprint('antminer', __name__, template_folder='../templates')
@@ -26,26 +28,41 @@ def miners():
     inactive_miners = []
     warnings = []
     errors = []
-
     total_hash_rate_per_model = {}
+    miner_objects = []
 
+    # lookup table for total_hash_rate_per_model
     for id, miner in MODELS.items():
         total_hash_rate_per_model[id] = {"value": 0, "unit": miner.get('unit')}
 
-    # running single threaded
+    # create miner objects to pass to executor.map
     for miner in miners:
-        antminer = ASIC_ANTMINER(miner)
+        module = MODELS[miner.model_id]['model_module']
+        cls = MODELS[miner.model_id]['model_classname']
+        obj = getattr(sys.modules[module], cls)(miner)
+        miner_objects.append(obj)
 
-        if antminer.is_inactive:
-                inactive_miners.append(antminer)
-        else:
-            active_miners.append(antminer)
-            for warning in antminer.warnings:
-                warnings.append(warning)
-            for error in antminer.errors:
-                errors.append(error)
-            total_hash_rate_per_model[
-                antminer.model_id]["value"] += antminer.hash_rate_ghs5s
+    # pass this method to executor.map to poll the miner
+    def poll(obj):
+        obj.poll()
+        return obj
+
+    # run with ThreadPoolExecutor
+    with concurrent.futures.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
+        results = executor.map(poll, miner_objects)
+        for miner in results:
+            if miner is not None:
+                if miner.is_inactive:
+                    inactive_miners.append(miner)
+                else:
+                    active_miners.append(miner)
+
+                    for warning in miner.warnings:
+                        warnings.append(warning)
+                    for error in miner.errors:
+                        errors.append(error)
+                    total_hash_rate_per_model[
+                        miner.model_id]["value"] += miner.hash_rate_ghs5s
 
     # Flash notifications
     if not miners:
@@ -87,28 +104,14 @@ def miners():
     loading_time = end - start
     return render_template(
         'asicminer/home.html',
-        MODELS=MODELS,
+        version=current_app.config['__VERSION__'],
+        models=MODELS,
+        errors=errors,
+        warnings=warnings,
         active_miners=active_miners,
         inactive_miners=inactive_miners,
         loading_time=loading_time,
         total_hash_rate_per_model=total_hash_rate_per_model_temp)
-    # return render_template(
-    #     'asicminer/home.html',
-    #     version=current_app.config['__VERSION__'],
-    #     models=MODELS,
-    #     active_miners=active_miners,
-    #     inactive_miners=inactive_miners,
-    #     workers=workers,
-    #     miner_chips=miner_chips,
-    #     temperatures=temperatures,
-    #     fans=fans,
-    #     hash_rates=hash_rates,
-    #     hw_error_rates=hw_error_rates,
-    #     uptimes=uptimes,
-    #     total_hash_rate_per_model=total_hash_rate_per_model_temp,
-    #     loading_time=loading_time,
-    #     miner_errors=miner_errors,
-    # )
 
 
 @antminer.route('/add', methods=['POST'])

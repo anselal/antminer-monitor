@@ -2,32 +2,15 @@ import re
 import time
 from datetime import timedelta
 
+from antminermonitor.blueprints.asicminer.base_miner import BaseMiner
 from config.settings import MODELS
 from lib.pycgminer import get_pools, get_stats, get_summary
 from lib.util_hashrate import update_unit_and_value
 
 
-class ASIC_ANTMINER():
+class ASIC_ANTMINER(BaseMiner):
     def __init__(self, miner):
-        super(ASIC_ANTMINER, self).__init__()
-        self.id = miner.id
-        self.ip = miner.ip
-        self.model_id = miner.model_id
-        self.remarks = miner.remarks
-        self.is_inactive = False
-        self.worker = ""
-        self.chips = {}
-        self.temperatures = []
-        self.fan_speeds = []
-        # this value will be used to calculate `total_hash_rate_per_model`
-        self.hash_rate_ghs5s = 0
-        # this value will be displayed in the table
-        self.normalized_hash_rate_ghs5s = 0
-        self.hw_error_rate = ""
-        self.uptime = ""
-        self.warnings = []
-        self.errors = []
-        self.poll()
+        super(ASIC_ANTMINER, self).__init__(miner)
 
     def poll(self):
         miner_stats = get_stats(self.ip)
@@ -107,9 +90,7 @@ class ASIC_ANTMINER():
             try:
                 self.hash_rate_ghs5s = float(
                     str(miner_stats['STATS'][1]['GHS 5s']))
-            except ValueError as v:
-                self.hash_rate_ghs5s = 0
-            except KeyError as k:
+            except Exception as e:
                 miner_summary = get_summary(self.ip)
                 self.hash_rate_ghs5s = float(
                     str(miner_summary['SUMMARY'][0]['GHS 5s']))
@@ -117,7 +98,7 @@ class ASIC_ANTMINER():
             # Normalize hashrate
             new_value, new_unit = update_unit_and_value(
                 self.hash_rate_ghs5s, MODELS[self.model_id]['unit'])
-            self.normalized_hash_rate_ghs5s = "{:3.2f} {}".format(
+            self.normalized_hash_rate = "{:3.2f} {}".format(
                 new_value, new_unit)
 
             # Get HW Errors
@@ -125,12 +106,9 @@ class ASIC_ANTMINER():
                 # Probably the miner is an Antminer E3 or S17
                 miner_summary = get_summary(self.ip)
                 self.hw_error_rate = miner_summary['SUMMARY'][0]['Device Hardware%']
-            except KeyError as k:
+            except Exception as e:
                 # self.hw_error_rate = miner_stats['STATS'][1]['Device Hardware%']
-                # ask again
-                miner_summary = get_summary(self.ip)
-                self.hw_error_rate = miner_summary['SUMMARY'][0]['Device Hardware%']
-            except ValueError as v:
+                # this seems to work
                 self.hw_error_rate = 0
 
             # Get uptime

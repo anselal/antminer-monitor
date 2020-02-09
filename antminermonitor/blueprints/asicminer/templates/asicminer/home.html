@@ -31,7 +31,7 @@ cryptocurrency, crypto, miner, mine, mining
                   <div>
                       <select required name="model_id">
                           <option disabled selected value> -- select an option --</option>
-                          {%- for id, model in MODELS.items() %}
+                          {%- for id, model in models.items() %}
                               <option value="{{ id }}">{{ model.get('description') }}</option>
                           {%- endfor %}
                       </select>
@@ -123,7 +123,7 @@ cryptocurrency, crypto, miner, mine, mining
             <tr {%- if active_miner.errors %} class="error"{%- endif %}>
                 <td><a target="_blank" href="http://{{ active_miner.ip }}/cgi-bin/minerStatus.cgi">{{ active_miner.ip }}</a></td>
                 <td>{{ active_miner.worker }}</td>
-                <td title="{{ MODELS.get(active_miner.model_id).get('description') }}">{{ active_miner.model_id }}</td>
+                <td title="{{ models.get(active_miner.model_id).get('description') }}">{{ active_miner.model_id }}</td>
                 <td>{{ active_miner.remarks }}</td>
                 <td>{{ active_miner.chips['Os'] }}</td>
                 <td>{{ active_miner.chips['Xs'] }}</td>
