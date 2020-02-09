@@ -94,6 +94,21 @@ AntminerMonitor runs by default in development mode, using Flask's development s
 
 To switch to production mode, edit `.flaskenv` and set `FLASK_ENV="production"`
 
+## Run AntminerMonitor as a service (systemd)
+
+Edit `antminermonitor.service` and adjust it properly to your environment
+
+As root, run the following:
+
+```sh
+# Copy file service file to systemd's system folder
+cp antminermonitor.service /etc/systemd/system/
+# That’s it. We can now start the service:
+systemctl start antminermonitor
+# And automatically get it to start on boot
+systemctl enable antminermonitor
+```
+
 ## Donations
 
 - BTC: `1HYCBovF6mqqKMyG4m2DQxXpdKmogK4Wuw`

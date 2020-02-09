@@ -1,0 +1,21 @@
+[Unit]
+Description=Gunicorn instance to serve AntminerMonitor
+After=network.target
+
+[Service]
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/antminer-monitor
+Environment="PATH=/home/pi/antminer-monitor/env/bin"
+ExecStart=/home/pi/antminer-monitor/env/bin/gunicorn \
+                                                --workers 2 \
+                                                -m 007 \
+                                                --log-file /home/pi/logs/antminermonitor.log \
+                                                --log-level debug \
+                                                --bind 0.0.0.0:5000 \
+                                                --reload \
+                                                'antminermonitor/app.py:create_app()'
+                                                # --bind unix:/home/pi/lock/antminermonitor.sock \
+
+[Install]
+WantedBy=multi-user.target

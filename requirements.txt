@@ -7,3 +7,4 @@ Flask-WTF==0.14.2
 python-dotenv==0.9.1
 WTForms-Components==0.10.3
 yapf==0.24.0
+gunicorn
