@@ -89,7 +89,8 @@ cryptocurrency, crypto, miner, mine, mining
                     <td><a target="_blank" href="http://{{ inactive_miner.ip }}/cgi-bin/minerStatus.cgi">{{ inactive_miner.ip }}</a></td>
                     <td>{{ inactive_miner.model_id }}</td>
                     <td>{{ inactive_miner.remarks }}</td>
-                    <td>Error: Check connection or IP Address</td>
+                    <!-- <td>Error: Check connection or IP Address</td> -->
+                    <td>{{ inactive_miner.errors }}</td>
                     <td><a href={{ url_for('antminer.delete_miner', id=inactive_miner.id) }} style="text-decoration:none">&#10060;</a></td>
                 </tr>
             {%- endfor %}

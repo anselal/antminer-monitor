@@ -34,6 +34,7 @@ class ASIC_ANTMINER():
         # if miner not accessible
         if miner_stats['STATUS'][0]['STATUS'] == 'error':
             self.is_inactive = True
+            self.errors.append(miner_stats['STATUS'][0]['description'])
         else:
             try:
                 # Get worker name
