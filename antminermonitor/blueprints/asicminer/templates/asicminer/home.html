@@ -47,6 +47,34 @@ cryptocurrency, crypto, miner, mine, mining
           </form>
       </fieldset>
     </div>
+    <div>
+        <fieldset name="miner_discovery">
+            <legend>Miner Discovery</legend>
+            <form action="{{ url_for('antminer.miner_discovery') }}" method="POST">
+                <div class="minerdiscovery_container">
+                    <div>
+                        <label for="subnet">Subnet: </label>
+                    </div>
+                    <div>
+                        <input required type="text" name="subnet" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){2}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" title="Please add a valid network subnet">
+                    </div>
+                    <div>
+                        <label for="start_ip">Start IP: </label>
+                    </div>
+                    <div>
+                        <input required type="number" name="start_ip" min="1" max="255" title="Accepted value: 1-255">
+                    </div>
+                    <div>
+                        <label for="end_ip">End IP: </label>
+                    </div>
+                    <div>
+                        <input required type="number" name="end_ip"  min="1" max="255" title="Accepted value: 1-255">
+                    </div>
+                    <p><input type="submit" value="Discover"></p>
+                </div>
+            </form>
+        </fieldset>
+    </div>
     <div></div>
     <div>
         <fieldset name="total_hashrate" style="height:130px">
