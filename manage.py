@@ -6,7 +6,7 @@ from antminermonitor.app import create_app
 from antminermonitor.blueprints.asicminer.models.miner import Miner
 from antminermonitor.blueprints.asicminer.models.settings import Settings
 from antminermonitor.blueprints.user.models import User
-from antminermonitor.extensions import db
+from antminermonitor.database import db_session, init_db
 
 cli = FlaskGroup(create_app=create_app)
 
@@ -18,7 +18,7 @@ def create_db():
     """
     from sqlalchemy.exc import IntegrityError
 
-    db.create_all()
+    init_db()
 
     settings = []
     settings.append(
@@ -31,8 +31,8 @@ def create_db():
 
     try:
          for setting in settings:
-            db.session.add(setting)
-            db.session.commit()
+            db_session.add(setting)
+            db_session.commit()
     except IntegrityError:
         print("[INFO] Database already exists.")
     else:
@@ -44,7 +44,7 @@ def create_admin():
     """
         Create admin user if not exist with default password 'antminermonitor'
     """
-    db.create_all()
+    init_db()
     print("[INFO] Checking if admin user exists...")
     admin = User.query.filter_by(username='admin').first()
 
@@ -57,8 +57,8 @@ def create_admin():
             firstname='admin',
             active=0)
         admin.set_password('antminermonitor')
-        db.session.add(admin)
-        db.session.commit()
+        db_session.add(admin)
+        db_session.commit()
     elif admin:
         print("[INFO] Admin user already exists.")
     else:

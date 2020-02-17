@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from antminermonitor.blueprints.asicminer.asic_antminer import ASIC_ANTMINER
 from antminermonitor.blueprints.asicminer.models import Miner
-from antminermonitor.extensions import db
+from antminermonitor.database import db_session
 from config.settings import MODELS, NUM_THREADS
 from lib.util_hashrate import update_unit_and_value
 
@@ -134,13 +134,13 @@ def add_miner(miner_ip, miner_model_id, miner_remarks):
     try:
         miner = Miner(
             ip=miner_ip, model_id=miner_model_id, remarks=miner_remarks)
-        db.session.add(miner)
-        db.session.commit()
+        db_session.add(miner)
+        db_session.commit()
         current_app.logger.info("Miner with IP Address {} added successfully".format(miner.ip))
         flash("Miner with IP Address {} added successfully".format(miner.ip),
               "success")
     except IntegrityError:
-        db.session.rollback()
+        db_session.rollback()
         current_app.logger.info("IP Address {} already added".format(miner.ip))
         flash("IP Address {} already added".format(miner.ip), "error")
 
@@ -214,7 +214,7 @@ def miner_discovery():
 def delete_miner(id):
     miner = Miner.query.filter_by(id=int(id)).first()
     if miner:
-        db.session.delete(miner)
-        db.session.commit()
+        db_session.delete(miner)
+        db_session.commit()
         flash("Miner {} removed successfully".format(miner.ip), "info")
     return redirect(url_for('antminer.miners'))

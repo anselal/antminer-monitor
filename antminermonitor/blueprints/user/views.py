@@ -5,7 +5,7 @@ from werkzeug.security import check_password_hash
 
 from antminermonitor.blueprints.user.forms import LoginForm, PasswordResetForm
 from antminermonitor.blueprints.user.models import User
-from antminermonitor.extensions import db
+from antminermonitor.database import db_session
 from lib.util_url import is_safe_url
 
 user = Blueprint('user', __name__, template_folder='templates')
@@ -46,7 +46,7 @@ def password_update():
         if user:
             password = form.password.data
             user.set_password(password)
-            db.session.commit()
+            db_session.commit()
             flash(
                 "[INFO] Password updated for user '{}'".format(user.username),
                 "info")

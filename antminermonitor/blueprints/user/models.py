@@ -1,17 +1,19 @@
 from flask_login.mixins import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from antminermonitor.extensions import db
+from sqlalchemy import Column, Integer, VARCHAR
+from antminermonitor.database import Base
 
 
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.VARCHAR(64), index=True, unique=True)
-    email = db.Column(db.VARCHAR(120), index=True, unique=True)
-    password_hash = db.Column(db.VARCHAR(128))
-    surname = db.Column(db.VARCHAR(100))
-    firstname = db.Column(db.VARCHAR(100))
-    active = db.Column(db.Integer, default=1)
+class User(UserMixin, Base):
+    __tablename__ = 'user'
+    id = Column(Integer, primary_key=True)
+    username = Column(VARCHAR(64), index=True, unique=True)
+    email = Column(VARCHAR(120), index=True, unique=True)
+    password_hash = Column(VARCHAR(128))
+    surname = Column(VARCHAR(100))
+    firstname = Column(VARCHAR(100))
+    active = Column(Integer, default=1)
 
     @property
     def serialize(self):

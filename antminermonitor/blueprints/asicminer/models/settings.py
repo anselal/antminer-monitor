@@ -1,11 +1,12 @@
-from antminermonitor.extensions import db
+from sqlalchemy import Column, Integer, String
+from antminermonitor.database import Base
 
-
-class Settings(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    value = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(255))
+class Settings(Base):
+    __tablename__ = 'settings'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), unique=True, nullable=False)
+    value = Column(String(100), nullable=False)
+    description = Column(String(255))
 
     def __repr__(self):
         return "Settings(name='{}', value={}, description='{}')" \

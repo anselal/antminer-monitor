@@ -2,14 +2,11 @@ from flask import Flask
 
 from antminermonitor.blueprints.asicminer import antminer, antminer_json
 from antminermonitor.blueprints.user import user
-from antminermonitor.extensions import (
-    db,
-    login_manager,
-    migrate,
-)
+from antminermonitor.extensions import login_manager, migrate
 from antminermonitor.blueprints.asicminer.models.miner import Miner
 from antminermonitor.blueprints.asicminer.models.settings import Settings
 from antminermonitor.blueprints.user.models import User
+from antminermonitor.database import db_session, init_db
 
 import logging
 import os
@@ -40,6 +37,10 @@ def create_app(script_info=None, settings_override=None):
     @app.shell_context_processor
     def make_shell_context():
         return dict(app=app, db=db, Miner=Miner, Settings=Settings, User=User)
+
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db_session.remove()
 
     return app
 
@@ -80,9 +81,8 @@ def extensions(app):
     :param app: Flask application instance
     :return: None
     """
-    db.init_app(app)
     login_manager.init_app(app)
-    migrate.init_app(app, db)
+    migrate.init_app(app, db_session)
 
     return
 
