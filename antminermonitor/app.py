@@ -15,7 +15,6 @@ import logging
 import os
 
 
-__version__ = "v0.4.0"
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
