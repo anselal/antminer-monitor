@@ -112,7 +112,7 @@ class ASIC_ANTMINER(BaseMiner):
                 self.hw_error_rate = 0
 
             # Get uptime
-            self.uptime = timedelta(seconds=miner_stats['STATS'][1]['Elapsed'])
+            self.uptime = str(timedelta(seconds=miner_stats['STATS'][1]['Elapsed']))
 
             # Flash error messages
             if Xs > 0:
