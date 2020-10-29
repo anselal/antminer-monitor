@@ -99,6 +99,16 @@
         "model_module": "antminermonitor.blueprints.asicminer.asic_antminer",
         "model_classname": "ASIC_ANTMINER"
     },
+    "Antminer S11": {
+        "id": "Antminer S11",
+        "model": "S11",
+        "chips": "84,84,84",
+        "temp_keys": "temp2_",
+        "unit": "GH/s",
+        "description": "Bitmain Antminer S11 Bitcoin Miner 19.5 TH/s",
+        "model_module": "antminermonitor.blueprints.asicminer.asic_antminer",
+        "model_classname": "ASIC_ANTMINER"
+    },
     "Antminer S17": {
         "id": "Antminer S17",
         "model": "S17",
