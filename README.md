@@ -103,6 +103,8 @@ As root, run the following:
 ```sh
 # Copy file service file to systemd's system folder
 cp antminermonitor.service /etc/systemd/system/
+# reload the daemon to apply changes
+systemctl daemon-reload
 # That’s it. We can now start the service:
 systemctl start antminermonitor
 # And automatically get it to start on boot
