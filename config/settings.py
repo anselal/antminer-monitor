@@ -13,7 +13,7 @@ with open("config/models.json","r") as json_data:
 MODELS = models
 
 import multiprocessing as m
-NUM_THREADS=m.cpu_count()-1
+NUM_THREADS=m.cpu_count()-1 or 1
 
 __VERSION__ = '0.5.0'
 
