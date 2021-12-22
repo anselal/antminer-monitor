@@ -16,7 +16,7 @@ Lite Python based Antminer Monitor !!!
 
 ### Requirements
 
-- Antminer Monitor requires Python to run. Both Python2 and Python3 are supported !!!
+- Antminer Monitor requires Python 3
 - Mac and Linux users have Python installed by default on their system
 - Windows users can download Python from <https://www.python.org>
 `** ATTENTION **` While installing Python be sure to check `Add python.exe to Path` in the step `Customize Python`
