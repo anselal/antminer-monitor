@@ -20,7 +20,7 @@ __VERSION__ = '0.5.0'
 DEBUG = True
 LOG_LEVEL = 'DEBUG'  # CRITICAL / ERROR / WARNING / INFO / DEBUG
 
-SECRET_KEY = os.environ.get('SECRET_KEY') or 'super secret key'
+SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(64)
 
 # SQLAlchemy
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + \
