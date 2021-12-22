@@ -22,7 +22,7 @@ antminer = Blueprint('antminer', __name__, template_folder='../templates')
 @login_required
 def miners():
     # Init variables
-    start = time.clock()
+    start = time.perf_counter()
     miners = Miner.query.all()
     active_miners = []
     inactive_miners = []
@@ -100,7 +100,7 @@ def miners():
             total_hash_rate_per_model_temp[key] = "{:3.2f} {}".format(
                 value, unit)
 
-    end = time.clock()
+    end = time.perf_counter()
     loading_time = end - start
     return render_template(
         'asicminer/home.html',
