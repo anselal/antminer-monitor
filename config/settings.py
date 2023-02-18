@@ -1,19 +1,20 @@
 import os
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
 
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 load_dotenv(os.path.join(basedir, '.env'))
 
 import json
 
-with open("config/models.json","r") as json_data:
+with open("config/models.json", "r") as json_data:
     models = json.load(json_data)
 
 MODELS = models
 
 import multiprocessing as m
-NUM_THREADS=m.cpu_count()-1 or 1
+
+NUM_THREADS = m.cpu_count() - 1 or 1
 
 __VERSION__ = '0.5.0'
 
@@ -36,3 +37,7 @@ MAIL_PORT = int(os.environ.get('MAIL_PORT') or 25)
 MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') is not None
 MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
 MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+
+# TELEGRAM
+TELEGRAM_BOT_TOKEN = ""
+TELEGRAM_CHAT_ID = ""

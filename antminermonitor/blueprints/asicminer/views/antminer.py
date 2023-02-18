@@ -14,6 +14,7 @@ from antminermonitor.blueprints.asicminer.models import Miner
 from antminermonitor.database import db_session
 from config.settings import MODELS, NUM_THREADS
 from lib.util_hashrate import update_unit_and_value
+from lib.util_notify import notify_telegram
 
 antminer = Blueprint('antminer', __name__, template_folder='../templates')
 
@@ -26,6 +27,7 @@ def miners():
     miners = Miner.query.all()
     active_miners = []
     inactive_miners = []
+
     warnings = []
     errors = []
     total_hash_rate_per_model = {}
@@ -48,7 +50,8 @@ def miners():
         return obj
 
     # run with ThreadPoolExecutor
-    with concurrent.futures.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
+    with concurrent.futures.ThreadPoolExecutor(
+            max_workers=NUM_THREADS) as executor:
         results = executor.map(poll, miner_objects)
         for miner in results:
             if miner is not None:
@@ -70,19 +73,24 @@ def miners():
                          "Please add miners using the above form.")
         current_app.logger.info(error_message)
         flash(error_message, "info")
+        notify_telegram(error_message)
+
     elif not errors:
         error_message = ("[INFO] All miners are operating normal. "
                          "No errors found.")
         current_app.logger.info(error_message)
         flash(error_message, "info")
+        notify_telegram(error_message)
 
     for error in errors:
         current_app.logger.error(error)
         flash(error, "error")
+        notify_telegram(error)
 
     for warning in warnings:
         current_app.logger.error(warning)
         flash(warning, "warning")
+        notify_telegram(warning)
 
     # flash("[INFO] Check chips on your miner", "info")
     # flash("[SUCCESS] Miner added successfully", "success")
@@ -97,8 +105,7 @@ def miners():
             total_hash_rate_per_model[key]["value"],
             total_hash_rate_per_model[key]["unit"])
         if value > 0:
-            total_hash_rate_per_model_temp[key] = "{:3.2f} {}".format(
-                value, unit)
+            total_hash_rate_per_model_temp[key] = f"{value:3.2f} {unit}"
 
     end = time.perf_counter()
     loading_time = end - start
@@ -132,17 +139,19 @@ def add_miner():
 
 def add_miner(miner_ip, miner_model_id, miner_remarks):
     try:
-        miner = Miner(
-            ip=miner_ip, model_id=miner_model_id, remarks=miner_remarks)
+        miner = Miner(ip=miner_ip,
+                      model_id=miner_model_id,
+                      remarks=miner_remarks)
         db_session.add(miner)
         db_session.commit()
-        current_app.logger.info("Miner with IP Address {} added successfully".format(miner.ip))
-        flash("Miner with IP Address {} added successfully".format(miner.ip),
+        current_app.logger.info(
+            f"Miner with IP Address {miner.ip} added successfully")
+        flash(f"Miner with IP Address {miner.ip} added successfully",
               "success")
     except IntegrityError:
         db_session.rollback()
-        current_app.logger.info("IP Address {} already added".format(miner.ip))
-        flash("IP Address {} already added".format(miner.ip), "error")
+        current_app.logger.info(f"IP Address {miner.ip} already added")
+        flash(f"IP Address {miner.ip} already added", "error")
 
 
 @antminer.route('/discovery/', methods=['POST'])
@@ -154,8 +163,12 @@ def miner_discovery():
     end_ip = request.form.get('end_ip', type=int)
 
     if end_ip < start_ip:
-        current_app.logger.error("Start IP ({}) cannot be smaller than the end IP ({})".format(start_ip, end_ip))
-        flash("Start IP ({}) cannot be smaller than the end IP ({})".format(start_ip, end_ip), "error")
+        current_app.logger.error(
+            f"Start IP ({start_ip}) cannot be smaller than the end IP ({end_ip})"
+        )
+        flash(
+            f"Start IP ({start_ip}) cannot be smaller than the end IP ({end_ip})",
+            "error")
         return redirect(url_for('miners'))
 
     supported_miner = ""
@@ -167,7 +180,7 @@ def miner_discovery():
             miner_stats = get_stats(ip)
             if miner_stats['STATUS'][0]['STATUS'] == 'error':
                 current_app.logger.error("Error querying IP %s" % ip)
-                flash("Error querying IP {}".format(ip), "error")
+                flash(f"Error querying IP {ip}", "error")
                 return False
         except Exception as c:
             return False
@@ -179,12 +192,11 @@ def miner_discovery():
     def add_if_supported(ip, model_id):
         # check if the miner is supported by the software
         try:
-            supported_miner = [id for id in MODELS.keys() if id==model_id][0]
+            supported_miner = [id for id in MODELS.keys() if id == model_id][0]
             add_miner(ip, supported_miner, "")
             return True
         except IndexError as i:
             return False
-
 
     while start_ip <= end_ip:
         ip = subnet + str(start_ip)
@@ -201,8 +213,12 @@ def miner_discovery():
                 continue
 
         # miner is not supported by the software
-        current_app.logger.error("Miner with IP %s is currently not supported by AntminerMonitor".format(ip))
-        flash("Miner with IP {} is currently not supported by AntminerMonitor".format(ip), "info")
+        current_app.logger.error(
+            f"Miner with IP {ip} is currently not supported by AntminerMonitor"
+        )
+        flash(
+            f"Miner with IP {ip} is currently not supported by AntminerMonitor",
+            "info")
 
         start_ip += 1
 
@@ -216,5 +232,5 @@ def delete_miner(id):
     if miner:
         db_session.delete(miner)
         db_session.commit()
-        flash("Miner {} removed successfully".format(miner.ip), "info")
+        flash(f"Miner {miner.ip} removed successfully", "info")
     return redirect(url_for('antminer.miners'))
